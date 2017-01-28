@@ -15,6 +15,12 @@
         "clocale": "cpp",
         "cstdlib": "cpp",
         "cstdio": "cpp",
-        "cwctype": "cpp"
+        "cwctype": "cpp",
+        "*h*h*h*h*h*hcstdint": "cpp",
+        "*h*h*hcwchar": "cpp",
+        "*hinitializer_list": "cpp",
+        "cstdarg": "cpp",
+        "*htypeinfo": "cpp",
+        "*hcstdio": "cpp"
     }
 }

@@ -7,6 +7,8 @@
 
 
 #include <iostream>
+#include <sstream>
+#include <vector>
 #include <unistd.h>
 #include "TCAS_defs.h"
 #include "TCAS_comms.h"
@@ -18,8 +20,45 @@ using std::cout; using std::endl;
  
 int main(int argn, char *argv[])
 {
-    std::cout << "TCAS simulator Group C\n";
-    std::cout << "Initializing...\n";
+    std::cout << "TCAS simulator Group C" << std::endl;
+    std::cout << "Initializing..." << std::endl;
+
+    uint64_t ownID;
+    
+    std::vector<std::string> argList;
+    for (int i = 0; i < argn; i++)
+    {
+        std::string argNoI = argv[i];
+        argList.push_back(argNoI);   
+    }
+    if (argn == 3)
+    {
+        if (!argList[1].compare("-id"))
+        {
+            std::stringstream tempStr = std::stringstream(argList[2]);
+            uint64_t inID;
+            tempStr >> inID;
+
+            if (inID != 0)
+            {
+                ownID = inID;
+                std::cout << "Using ID " << inID << " from CLI." << std::endl;
+            }
+            else
+            {
+                ownID = OWN_HEX;
+            }
+        }
+        else
+        {
+            ownID = OWN_HEX;
+        }
+    }
+    else
+    {
+        ownID = OWN_HEX;
+    }
+    
     
     Radar_initialize();
     //TODO - Acquire starting coordinates
@@ -36,7 +75,7 @@ int main(int argn, char *argv[])
     //AC_state ownInitState(own_hex, xinit, yinit, zinit, xdotinit, ydotinit,
     //                        zdotinit);
     
-    AC_state ownInitState(own_hex, 0, 0, 1000); //1000m above S.Tomé e Príncipe
+    AC_state ownInitState(ownID, 0, 0, 1000); //1000m above S.Tomé e Príncipe
     TCAS_state ownInitTCAS = TCAS_state();
     
     AC_sim ownAircraft(ownInitState);

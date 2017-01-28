@@ -197,6 +197,13 @@ void broadcast_socket::recvThreadFunction()
     struct sockaddr_in  recvAddr;
     unsigned int        recvAddrSize;
 
+    while (!msgInitialized)
+    {
+        //Avoid a race so that we only start receiving once our
+        //ID is set
+        sleep(1);
+    }
+
     while (continueRecv)
     {
         recvAddrSize = sizeof(struct sockaddr_in);
