@@ -271,6 +271,20 @@ void broadcast_socket::updateStatus(AC_state ownState, TCAS_state tcasSituation)
 
 
 /*
+ *  Update just our vectors
+ *
+ *  Used when nothing much happens
+ *
+ */
+void broadcast_socket::updateStatus(AC_state ownState)
+{
+    stagedMsg.updateOwnStatus(ownState);
+    msgUpdated = true;
+}  
+
+
+
+/*
  *  updateTCASStatus - Update the message's own state fields
  */
 void TCAS_msg::updateOwnStatus(AC_state state)

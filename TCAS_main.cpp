@@ -83,14 +83,22 @@ int main(int argn, char *argv[])
 
     //TODO - Initialize networking
 
-    broadcast_socket testSocket(10505);
+    broadcast_socket transSocket(10505);
 
-    testSocket.initializeStatus(ownInitState, ownInitTCAS);
+    //This stuff should go in a separate thread
+    transSocket.initializeStatus(ownInitState, ownInitTCAS);
+
+    AC_state ownState;
     
     while(1)
     {
+        
+        ownState = ownAircraft.getCurrentState();
+        transSocket.updateStatus(ownState);
+        printState(ownState);
         sleep(1);
-        printState(ownAircraft.getCurrentState());
+        
+        
         //Radar_update(ownAircraft, 
 
         
