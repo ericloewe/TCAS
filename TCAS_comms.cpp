@@ -222,7 +222,7 @@ void broadcast_socket::recvThreadFunction()
         tempRemoteMsg = *msgBuffer; //Convenience
 
         //Ignore our own messages and invalid hex
-        if (tempRemoteMsg.ac_id != OWN_HEX && tempRemoteMsg.ac_id != 0)
+        if (tempRemoteMsg.ac_id != stagedMsg.ac_id && tempRemoteMsg.ac_id != 0)
         {
             std::cout << "Received " << receivedBytes << " bytes!" << std::endl;   
             std::string output = tempRemoteMsg.toString();
@@ -362,6 +362,10 @@ int broadcast_socket::getUpdatedTargetsStatus(
     //Preallocate for time efficiency
     targetsStatus.reserve(MAX_TARGETS);
     targetsTCAS.reserve(MAX_TARGETS);
+
+    //Ensure the vectors are empty
+    targetsStatus.clear();
+    targetsTCAS.clear();
     
     //Lock the targets list
     std::lock_guard<std::mutex> lock(targetsMutex);

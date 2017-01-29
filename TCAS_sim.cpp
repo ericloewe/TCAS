@@ -19,6 +19,7 @@ void TCAS_sim::sim_thread_fn(){
         UpdateTargetStates();
         printState(own_State_sim.getCurrentState());
         Radar_update(own_State_sim.getCurrentState(), targetStates);
+        std::cout << "Targets list size: " << targetStates.size() << std::endl;
     }
     
 }
