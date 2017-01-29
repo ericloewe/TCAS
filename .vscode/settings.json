@@ -21,6 +21,7 @@
         "*hinitializer_list": "cpp",
         "cstdarg": "cpp",
         "*htypeinfo": "cpp",
-        "*hcstdio": "cpp"
+        "*hcstdio": "cpp",
+        "mutex": "cpp"
     }
 }

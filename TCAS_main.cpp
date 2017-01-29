@@ -8,13 +8,14 @@
 
 #include <iostream>
 #include <sstream>
+#include <fstream>
 #include <vector>
 #include <unistd.h>
 #include "TCAS_defs.h"
 #include "TCAS_comms.h"
 #include "AC_sim.h"
 #include "Radar.h"
-void printState (AC_state state);
+void printState (AC_state state);   //Move or delete this
 
 using std::cout; using std::endl;
  
@@ -23,7 +24,17 @@ int main(int argn, char *argv[])
     std::cout << "TCAS simulator Group C" << std::endl;
     std::cout << "Initializing..." << std::endl;
 
+    double xinit = 0;
+    double yinit = 0;
+    double zinit = 0;
+    
+    double xdotinit = 200;
+    double ydotinit = 0;
+    double zdotinit = 0;
+
     uint64_t ownID;
+
+    std::ifstream initfile; 
     
     std::vector<std::string> argList;
     for (int i = 0; i < argn; i++)
@@ -31,7 +42,36 @@ int main(int argn, char *argv[])
         std::string argNoI = argv[i];
         argList.push_back(argNoI);   
     }
-    if (argn == 3)
+    
+    if (argn == 2)  //Read init file
+    {
+        initfile = std::ifstream(argList[1]);
+        if (initfile.good())
+        {
+            char linebuff[128];
+            initfile.getline(linebuff, 128);
+            std::string linebuffStr = std::string(linebuff);
+            if (!(linebuffStr == TCAS_INIT_FILE_HDR))
+            {
+                //TODO: Wire these variables in
+                double latInit;
+                double lonInit;
+                double hInit;
+
+                double headInit;
+                double spdInit;
+
+                
+                initfile >> latInit;
+                initfile >> lonInit;
+                initfile >> hInit;
+                initfile >> headInit;
+                initfile >> spdInit;
+            }
+
+        }
+    }
+    else if (argn == 3)
     {
         if (!argList[1].compare("-id"))
         {
@@ -62,14 +102,6 @@ int main(int argn, char *argv[])
     
     Radar_initialize();
     //TODO - Acquire starting coordinates
-    //std::cout << "Using default initial state: x=0;0;0 v=200;0;0\n";
-    double xinit = 0;
-    double yinit = 0;
-    double zinit = 0;
-    
-    double xdotinit = 200;
-    double ydotinit = 0;
-    double zdotinit = 0;
     
     //TODO - Initialize own model
     //AC_state ownInitState(own_hex, xinit, yinit, zinit, xdotinit, ydotinit,
@@ -85,8 +117,11 @@ int main(int argn, char *argv[])
 
     broadcast_socket transSocket(10505);
 
-    //This stuff should go in a separate thread
     transSocket.initializeStatus(ownInitState, ownInitTCAS);
+
+    //This stuff should go in a separate thread
+    //managed by an object
+    
 
     AC_state ownState;
     

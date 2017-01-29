@@ -19,7 +19,10 @@ bool TCAS_sim::UpdateOwnState(AC_state newState)
     return true;
 }
 
-bool TCAS_sim::UpdateTargetState(AC_state newState)
+
+
+//No longer used
+/*bool TCAS_sim::UpdateTargetState(AC_state newState)
 {
     if(newState.AC_ID == 0)
         return false;
@@ -50,3 +53,4 @@ bool TCAS_sim::UpdateTargetState(AC_state newState)
     
     return false;
 }
+*/

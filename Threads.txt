@@ -1,0 +1,53 @@
+Tasks executed by each thread (summary):
+
+There are four threads:
+    0)  The original thread
+    1)  The send() thread (handled by broadcast_socket)
+    2)  The recv() thread (handled by broadcast_socket)
+    3)  The Sim/TCAS thread (handled by some sort of AC_sim or TCAS_sim or whatever object)
+    
+    
+0)  The original thread:
+    1)  cli args processing
+    2)  Misc. init
+    3)  Construct the radar display object
+    4)  Construct a broadcast_socket object
+    5)  Construct whatever object contains the simulations
+    6)  Handle user input (optional)
+    7)  join() all the threads (Must be handled by the objects' destructors!)
+    
+1)  The send() thread:
+    1)  Wait for our state to be initialized by thread 3)
+    2)  Set the timer for 1 second in the future
+    3)  Check for updates to our state (complain if they're not there and go to 2))
+    4)  send() stuff
+    5)  Increment the target database's timeout counters (? Very optional)
+    6)  Wait for the timer (std::this_thread::sleep_until(nextSend))
+    7)  Go to 2)
+    
+2)  The recv() thread:
+    1)  Wait for our state to be initialized by thread 3) (At the very least, we need to know our ID)
+    2)  recv() stuff
+    3)  Discard malformed messages
+    4)  TODO: Calculate checksum, discard if no match and go to 2)
+    5)  Add the new information to our list
+    6)  Go to 2)
+    
+3)  The Smörgåsbord thread:
+    1)  Set the timer for 1 second in the future
+    2)  Simulate one period
+    3)  Grab targets' data (by calling broadcast_socket.getUpdatedTargetsStatus())
+    4)  Simulate TCAS
+    5)  Update our own data (by calling broadcast_socket.updateStatus)
+    6)  Take TCAS action if needed
+    7)  Update the GUI 
+    8)  Wait for the timer (std::this_thread::sleep_until(nextSend))
+    9)  Go to 2)
+    
+    
+Additional notes:
+
+The function executed by thread 3) must receive references to at least the following:
+    -   the previously-created broadcast_socket object
+    -   the previously-created radar display object
+    

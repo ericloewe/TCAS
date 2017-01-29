@@ -210,6 +210,8 @@ void broadcast_socket::recvThreadFunction()
 
         receivedBytes = recvfrom(sock_fd, (void *)recvBuffer, TCAS_MSG_LEN,
                                    0, (sockaddr*)&recvAddr, &recvAddrSize);
+        //Timing is critical, so we take note of the time right away
+        recvTime = std::chrono::high_resolution_clock::now();
 
         //Reject messages that do not have the appropriate size
         if (receivedBytes != TCAS_MSG_LEN)
@@ -217,25 +219,78 @@ void broadcast_socket::recvThreadFunction()
             continue;
         }
         TCAS_msg *msgBuffer = (TCAS_msg *)recvBuffer;
+        tempRemoteMsg = *msgBuffer; //Convenience
 
-        //Ignore our own messages
-        if (msgBuffer -> ac_id != OWN_HEX)
+        //Ignore our own messages and invalid hex
+        if (tempRemoteMsg.ac_id != OWN_HEX && tempRemoteMsg.ac_id != 0)
         {
-            std::cout << "Received " << receivedBytes << " bytes!" << std::endl;
-            
-            tempRemoteMsg = *msgBuffer;
+            std::cout << "Received " << receivedBytes << " bytes!" << std::endl;   
             std::string output = tempRemoteMsg.toString();
             std::cout << "Begin TCAS message:" << std::endl;
             std::cout << output;
             std::cout << "End TCAS message." << std::endl;
 
-            //TODO:
-            //Validate Checksum
-            //Add message if new
-            //Etc.
+            //TODO: VALIDATE CHECKSUM
+
+            if (!processTarget(tempRemoteMsg,recvTime))
+            {
+                //Log an error
+                std::cerr << "WARNING: Too many targets! New target dropped.";
+                std::cerr << std::endl;
+            }
+
+            //TODO: Check if the message is old
         }
     }
 }  
+
+
+
+/*
+ *  processTarget: takes a TCAS_msg and uses it to update
+ *  the relevant data in the targets list.
+    Converts received messages to our internal format and adds
+    them to the list.
+ *  AC_state is initialized with the given time_point.
+ *
+ *  Returns true on success, false if there is no room for 
+ *  a new target.
+ */
+bool broadcast_socket::processTarget(TCAS_msg tgtMsg, 
+        std::chrono::high_resolution_clock::time_point recvTime)
+//AC_state newState, TCAS_state newTCAS
+{ 
+    AC_state newState = AC_state(tgtMsg, recvTime);
+    TCAS_state newTCAS = TCAS_state(tgtMsg);
+    
+    //Lock the targets list
+    std::lock_guard<std::mutex> lock(targetsMutex);
+    //No need to unlock, destroying the object releases the lock
+    
+    //find target somewhere
+    for (int i = 0; i < MAX_TARGETS; i++)
+    {
+        if (newState.AC_ID == targetsList[i].AC_ID)
+        {
+            targetsList[i] = newState;
+            targetsTCAS[i] = newTCAS;
+            return true;
+        }
+    }
+    
+    //Aircraft not in targets. Insert in first available.
+    for (int i = 0; i < MAX_TARGETS; i++)
+    {
+        if (targetsList[i].AC_ID == 0)
+        {
+            targetsList[i] = newState;
+            targetsTCAS[i] = newTCAS;
+            return true;
+        }
+    }
+    //No room for new ones. Welp.
+    return false;
+}
 
 
 
@@ -263,6 +318,10 @@ void broadcast_socket::initializeStatus(AC_state ownState, TCAS_state tcasSituat
  */
 void broadcast_socket::updateStatus(AC_state ownState, TCAS_state tcasSituation)
 {
+    //Lock our position data
+    std::lock_guard<std::mutex> lock(ownStateMutex);
+    //No need to unlock, destroying the object releases the lock
+    
     stagedMsg.updateOwnStatus(ownState);
     stagedMsg.updateTCASStatus(tcasSituation);
     msgUpdated = true;
@@ -278,6 +337,10 @@ void broadcast_socket::updateStatus(AC_state ownState, TCAS_state tcasSituation)
  */
 void broadcast_socket::updateStatus(AC_state ownState)
 {
+    //Lock our position data
+    std::lock_guard<std::mutex> lock(ownStateMutex);
+    //No need to unlock, destroying the object releases the lock
+    
     stagedMsg.updateOwnStatus(ownState);
     msgUpdated = true;
 }  
@@ -285,135 +348,42 @@ void broadcast_socket::updateStatus(AC_state ownState)
 
 
 /*
- *  updateTCASStatus - Update the message's own state fields
+ *  getUpdatedTargetsStatus is called from an external thread.
+ *
+ *  It fills in the vectors referenced in the arguments with
+ *  the data from the current list.
+ *
+ *  The return value represents the number of targets in the list
  */
-void TCAS_msg::updateOwnStatus(AC_state state)
+int broadcast_socket::getUpdatedTargetsStatus(
+            std::vector<AC_state>& targetsStatus,
+            std::vector<TCAS_state>& targetsTCAS)
 {
-    ac_id = state.getID();
+    //Preallocate for time efficiency
+    targetsStatus.reserve(MAX_TARGETS);
+    targetsTCAS.reserve(MAX_TARGETS);
     
-    xPos = state.getX_pos();
-    yPos = state.getY_pos();
-    zPos = state.getZ_pos();
-    
-    xSpd = state.getX_spd();
-    ySpd = state.getY_spd();
-    zSpd = state.getZ_spd();
+    //Lock the targets list
+    std::lock_guard<std::mutex> lock(targetsMutex);
+    //No need to unlock, destroying the object releases the lock
+
+    int targetsTracked = 0;
+    for (int i = 0; i < MAX_TARGETS; i++)
+    {
+        //Check for valid ID
+        if (targetsList[i].AC_ID != 0)
+        {
+            targetsTracked++;
+            targetsStatus.push_back(targetsList[i]);
+            targetsTCAS.push_back(targetsTCAS[i]);
+        }
+    }
+
+    return targetsTracked;
 }
 
 
 
-/*
- *  updateTCASStatus - Update the message's TCAS fields
- */
-void TCAS_msg::updateTCASStatus(TCAS_state state)
-{
-    strncpy(status, state.status, 16);
-    strncpy(resolution, state.resolution, 16);
-    intruderHex = state.intruder_hex;
-    resValue = state.res_value;
-}
-
-
-
-/*  
- *  Constructor: Nothing is known.
- */
-TCAS_msg::TCAS_msg()
-{
-    //Nothing to construct.
-}
-
-
-
-/*  
- *  Constructor: Use existing AC_state to initialize the message.
- *
- *      TCAS status data is not initialized
- *
- *      CRC32 is calculated only upon transmission
- */
-TCAS_msg::TCAS_msg(AC_state state)
-{
-    //Set the correct header
-    strncpy(header, TCAS_MSG_HEADER, TCAS_MSG_STRLEN);
-    
-    updateOwnStatus(state);
-    
-    //We don't have TCAS status data
-    
-    //CRC32 is calculated just before transmission
-}
-
-
-
-/*  
- *  Constructor: Use existing AC_state and TCAS_state to initialize 
- *                  the message.
- *
- *      CRC32 is calculated only upon transmission
- */
-TCAS_msg::TCAS_msg(AC_state state, TCAS_state situation)
-{
-    //Set the correct header
-    strncpy(header, TCAS_MSG_HEADER, TCAS_MSG_STRLEN);
-    
-    updateOwnStatus(state);
-    updateTCASStatus(situation);
-    
-    //CRC32 is calculated just before transmission
-}
-
-
-
-/*  
- *  Due to compiler optimizations, sizeof(TCAS_msg) is
- *  128 bytes. The real message size is only 124 bytes.
- *  We can't just send four extra bytes willy-nilly.
- *  Well, we *could*, but other people would not be happy
- *  as we'd probably expose weird edge cases in their code...
- *
- *  Returns 124. Yes, that's it.
- */    
-int TCAS_msg::nonPaddedSize()
-{
-    return TCAS_MSG_LEN;
-}
-
-
-
-/*
- *  TCAS_msg::toString()
- *
- *  Returns a pretty-format string to display
- *  a TCAS message to the user
- *
- */
- std::string TCAS_msg::toString()
- {
-     std::stringstream output;
-     
-     output << header;
-     output << std::endl << "Aircraft ID: ";
-     output << ac_id << std::endl;
-     output << "Position: ";
-     output << (xPos) << "  ";
-     output << (yPos) << "  ";
-     output << (zPos) << std::endl;
-     output << "Velocity: ";
-     output << xSpd << "  ";
-     output << ySpd << "  ";
-     output << zSpd << std::endl;
-     output << "Conflict info:" << std::endl;
-     output << status << std::endl;
-     output << "Intruder ID: ";
-     output << intruderHex << std::endl;
-     output << "Resolution: ";
-     output << resolution << std::endl;
-     output << "Res. Value: ";
-     output << resValue << std::endl;
-
-     return output.str();
- }
 
     
     

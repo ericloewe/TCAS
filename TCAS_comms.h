@@ -15,69 +15,7 @@
 
 #pragma once
 
-#define DEFAULT_MSG_INIT_SIZE 256 //???
-#define TCAS_MSG_LEN 124
 
-#define TCAS_MSG_HEADER "ACIP TCAS   V01\0"
-#define TCAS_MSG_STRLEN 16
-
-
-
-
-/*  
- *  TCAS_msg is structured exactly like the data sent over the network. 
- *  Instances of this class can simply be cast into void * and passed 
- *  to/from socket's send and recv functions.
- *
- *  Or rather, this would be possible without compiler optimizations.
- *  Most compilers will pad 124 bytes to 128 bytes, so care still needs 
- *  to be taken.
- *  
- */ 
-class TCAS_msg
-{
-//private:
-    
-
-public:
-    
-    char        header[16];
-    uint64_t    ac_id;
-    
-    double      xPos;
-    double      yPos;
-    double      zPos;
-    
-    double      xSpd;
-    double      ySpd;
-    double      zSpd;
-    
-    char        status[16];
-    uint64_t    intruderHex;
-    char        resolution[16];
-    double      resValue;
-    
-    uint32_t    CRC;
-    
-    //Default constructor
-    TCAS_msg();
-    //AC_state constructor
-    TCAS_msg(AC_state state);
-    //Constructor fed with all the relevant data
-    TCAS_msg(AC_state state, TCAS_state situation);
-    //The implicit copy constructor is good enough for us
-
-    //Simple function to return the proper size needed for 
-    //messages (124 bytes)
-    static int nonPaddedSize();
-
-    void updateOwnStatus(AC_state state);
-    void updateTCASStatus(TCAS_state state);
-
-    std::string toString();
-
-
-};
 
 class broadcast_socket
 {
@@ -97,13 +35,16 @@ class broadcast_socket
     //std::chrono::time_point<std::chrono::high_resolution_clock> nextSend;
     std::chrono::high_resolution_clock::time_point nextSend;
 
-    //Data buffers
+    //Outgoing Data buffers
     TCAS_msg stagedMsg;
     bool msgUpdated = false;
     bool msgInitialized = false;
 
-    TCAS_msg tempRemoteMsg;
-
+    //Incoming data buffers
+    AC_state    targetsList[MAX_TARGETS];
+    TCAS_state  targetsTCAS[MAX_TARGETS];
+    TCAS_msg tempRemoteMsg; //Holds recv'd data
+    std::chrono::high_resolution_clock::time_point recvTime;
 
     std::thread sendThread; //Handles send and other timed tasks
     std::thread recvThread; //Waits for incoming broadcasts
@@ -113,6 +54,11 @@ class broadcast_socket
     
     void sendThreadFunction();
     void recvThreadFunction();
+
+    //Converts received messages to our internal format and adds
+    //them to the list.
+    bool processTarget(TCAS_msg tgtMsg, 
+        std::chrono::high_resolution_clock::time_point recvTime);
     
     public:
     
@@ -129,6 +75,5 @@ class broadcast_socket
     int getUpdatedTargetsStatus(std::vector<AC_state>& targetsStatus,
                                 std::vector<TCAS_state>& targetsTCAS);
     
-    
-    
+
 };
