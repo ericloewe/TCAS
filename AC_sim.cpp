@@ -1,5 +1,9 @@
 #include "AC_sim.h"
 
+AC_sim::AC_sim()
+{
+}
+
 AC_sim::AC_sim(AC_state initState)
 {
     state = initState;

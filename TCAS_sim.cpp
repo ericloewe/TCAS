@@ -1,56 +1,65 @@
 #include "TCAS_sim.h"
 
-bool TCAS_sim::UpdateOwnState(AC_state newState)
-{
-    //newState must be valid and ownState AC_ID can't change unless it is undefined
-    if(newState.AC_ID==0 || (newState.AC_ID!=ownState.AC_ID && ownState.AC_ID!=0))
-        return false;
-        
-    //we can't be our targets
-    for(int i=0; i<NumOfTargets; i++)
-    {
-        if(newState.AC_ID == targetStates[i].AC_ID)
-        {
-            return false;
-        }
+TCAS_sim::TCAS_sim(AC_sim new_State_sim, broadcast_socket* new_socket_ptr){
+    
+    own_State_sim = new_State_sim;
+    socket_ptr = new_socket_ptr;
+    
+    new_socket_ptr->initializeStatus(own_State_sim.getCurrentState(), own_TCAS_State);
+    
+    sim_thread = std::thread(&TCAS_sim::sim_thread_fn, this);
+    
+}
+
+void TCAS_sim::sim_thread_fn(){
+    
+    while(1){
+        usleep(900e3);
+        UpdateOwnState();
+        UpdateTargetStates();
+        printState(own_State_sim.getCurrentState());
+        Radar_update(own_State_sim.getCurrentState(), targetStates);
     }
     
-    ownState = newState;
-    return true;
+}
+
+void TCAS_sim::UpdateOwnState()
+{
+    own_State_sim.advanceToNow();
+}
+
+void TCAS_sim::UpdateTargetStates(){
+    
+    socket_ptr->getUpdatedTargetsStatus(targetStates, target_TCAS_States);
+    
 }
 
 
 
-//No longer used
-/*bool TCAS_sim::UpdateTargetState(AC_state newState)
+void printState (AC_state state)
 {
-    if(newState.AC_ID == 0)
-        return false;
+    cout << "Aircraft ID: " << state.AC_ID << endl;
     
-    //we can't be our targets
-    if(newState.AC_ID == ownState.AC_ID)
-        return false;
+    double P_xyz[3] = {state.x_pos, state.y_pos, state.z_pos};
+    double P_llh[3];
     
-    //find target somewhere
-    for(int i=0; i<NumOfTargets; i++)
-    {
-        if(newState.AC_ID == targetStates[i].AC_ID)
-        {
-            targetStates[i] = newState;
-            return true;
-        }
-    }
+    xyz_to_llh(P_xyz, P_llh);
     
-    //Aircraft not in targets. Insert in first available.
-    for(int i=0; i<NumOfTargets; i++)
-    {
-        if(targetStates[i].AC_ID == 0)
-        {
-            targetStates[i] = newState;
-            return true;
-        }
-    }
+    cout << "Position: ";
+    for(int i=0; i<2; i++)
+        cout << P_llh[i]*180/pi << "º ";
+    cout << P_llh[2] << "m " << endl;
     
-    return false;
+    double V_xyz[3] = {state.x_spd, state.y_spd, state.z_spd};;
+    double V_enu[3];
+    xyz_to_enu(V_xyz, P_llh[0], P_llh[1], V_enu);
+    
+    cout << "Velocity: ";
+    for(int i=0; i<3; i++)
+        cout << V_enu[i] << " ";
+    cout << "(m/s)" << endl;
+    
+    /*cout << "Position: " << state.x_pos << "; " << state.y_pos << "; " << state.z_pos << endl;
+    cout << "Velocity: " << state.x_spd << "; " << state.y_spd << "; " << state.z_spd << endl;*/
 }
-*/
+

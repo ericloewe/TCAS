@@ -82,14 +82,14 @@ void Radar_draw_plane(double P_xyz[3]){
     g2_filled_circle(virtual_dev, (double)W/2.0 + (double)R*Dir_to_P_ENU[0]/Range, (double)H/2.0 + (double)R*Dir_to_P_ENU[1]/Range, r);
 }
 
-void Radar_update(AC_state ownState, AC_state *targetStates){
+void Radar_update(AC_state ownState, std::vector<AC_state> targetStates){
     
     Radar_draw_background();
     
     double xyz[3] = {ownState.x_pos, ownState.y_pos, ownState.z_pos};
     Radar_set_centre(xyz);
     
-    for(int i=0; i<TCAS_sim::NumOfTargets; i++){
+    for(unsigned int i=0; i<targetStates.size(); i++){
         
         if(ownState.AC_ID==0)
             continue;

@@ -2,6 +2,7 @@
 
 #include <chrono>
 #include <string>
+#include <vector>
 
 #define OWN_HEX 216412359
 #define MAX_TARGETS 16
@@ -80,7 +81,7 @@ class AC_state
     friend class AC_sim; //to access the positions and velocities
     friend class TCAS_sim; //to access AC_ID
     friend void printState(AC_state state);
-    friend void Radar_update(AC_state ownState, AC_state *targetStates);
+    friend void Radar_update(AC_state ownState, std::vector<AC_state> targetStates);
 public:
     uint64_t AC_ID;
     

@@ -4,6 +4,7 @@ extern "C"{
 #include <g2.h>
 #include <g2_X11.h>
 }
+#include <vector>
 #include <unistd.h>
 #include "Navigation.h"
 #include "TCAS_defs.h"
@@ -24,5 +25,5 @@ void Radar_draw_background();
 
 void Radar_draw_plane(double P_xyz[3]);
 
-void Radar_update(AC_state ownState, AC_state *targetStates);
+void Radar_update(AC_state ownState, std::vector<AC_state> targetStates);
 

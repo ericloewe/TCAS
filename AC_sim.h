@@ -26,6 +26,7 @@ class AC_sim
     
     //Constructor with initial state
     AC_sim(AC_state initState);
+    AC_sim();
     
     //Get the current aircraft simulation state
     //Used to update the TCAS simulation and to acquire
@@ -35,9 +36,9 @@ class AC_sim
     void set_controls(double new_V, double new_h_ref, double new_azimuth);
     
     //bool cmdInputs();
+    void advanceToNow();
     
     private:
-    void advanceToNow();
     void step(milliseconds stepDuration);
     void runge_kutta_4 (int mode, double delta_t, double t_step);
     void f(const AC_state now_state, double f_value[6]);
