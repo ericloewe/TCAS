@@ -1,9 +1,9 @@
 TCAS Simulation Init File Format V1
 10555			//Remote destination port
 10505			//Local incoming port
-1023			//Own aircraft ID
+1024			//Own aircraft ID
 38.76300		//Start latitude
--9.13416		//Start Longitude    
+-0.04		//Start Longitude    
 3000			//Start altitude
-250			//Start heading         
-250			//Start speed
+90			//Start heading         
+50			//Start speed

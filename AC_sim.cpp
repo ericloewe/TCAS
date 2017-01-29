@@ -7,6 +7,8 @@ AC_sim::AC_sim()
 AC_sim::AC_sim(AC_state initState)
 {
     state = initState;
+    mode = CRUISE;
+    AC_ID = state.AC_ID;
 }
 
 
@@ -16,12 +18,9 @@ void AC_sim::advanceToNow()
     milliseconds delta_t_chrono = duration_cast<milliseconds>(curr_time - state.time_of_issue);
     state.time_of_issue = curr_time;
     
-    double pos[3] = {state.x_pos, state.y_pos, state.z_pos};
-    double spd[3] = {state.x_spd, state.y_spd, state.z_spd};
-    
     double delta_t = (double)delta_t_chrono.count()/1000.0;
     
-    runge_kutta_4(CRUISE, delta_t, 0.010);
+    runge_kutta_4(delta_t, 0.010);
     
     //Unnecessary if second-order model gets implemented (but should be harmless)
     double f_val[6];
@@ -36,7 +35,7 @@ AC_state AC_sim::getCurrentState(){
     return state;
 }
 
-void AC_sim::runge_kutta_4 (int mode, double delta_t, double t_step)
+void AC_sim::runge_kutta_4 (double delta_t, double t_step)
 {
     double k[5][6];
     AC_state aux_state;
@@ -82,7 +81,21 @@ void AC_sim::f(const AC_state now_state, double f_value[6])
     
     //Consider this values in degrees for now
     double K = 0.1; //degrees per metre
-    double climb_angle = K*(h_ref - Pos_llh[2]);
+    double h_obj = h_ref;
+    
+    if(mode==CLIMB)
+        h_obj+=Altitude_Variation;  
+        
+    if(mode==DESCENT)
+        h_obj-=Altitude_Variation;
+    
+    if(mode==CRUISE && abs(h_ref-Pos_llh[2])<10)
+        at_h_ref = true;
+    else
+        at_h_ref = false;
+    
+    
+    double climb_angle = K*(h_obj - Pos_llh[2]);
     
     //~ cout << h_ref << " " << Pos_llh[2] << " ";
     //~ cout << "-->Climb angle: " << climb_angle << endl;
@@ -133,5 +146,7 @@ void AC_sim::set_controls(double new_V, double new_h_ref, double new_azimuth)
     azimuth = new_azimuth;
 }
 
-
+void AC_sim::set_mode(int new_mode){
+    mode = new_mode;
+}
 

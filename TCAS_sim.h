@@ -7,11 +7,12 @@
 #include <unistd.h>
 #include <vector>
 #include <thread>
+#include <string.h>
  
 #include "TCAS_defs.h"
 #include "AC_sim.h"
 #include "TCAS_comms.h"
-
+#include "Radar.h"
  
 class TCAS_sim
 {
@@ -37,8 +38,13 @@ private:
     std::thread sim_thread;
     
     //Performs the decisions characterstic of a TCAS system
+    bool resolve(int which_target);
     void Actual_TCAS();
-    const double min_safe_distance = 1e3; //m
+    const double min_safe_distance = 300; //m
+    const double Resolution_Time = 25; //s
+    const double Advisory_Time = 40; //s
+    
+    
     bool analyse_collision_danger(const int which_target, double &time_to_approach); //returns weather this aircraft will be or is within min_safe_distance of our aircraft
     
     
