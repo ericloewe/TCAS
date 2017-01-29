@@ -26,6 +26,7 @@ void TCAS_sim::sim_thread_fn(){
 void TCAS_sim::UpdateOwnState()
 {
     own_State_sim.advanceToNow();
+    socket_ptr->updateStatus(own_State_sim.getCurrentState());
 }
 
 void TCAS_sim::UpdateTargetStates(){
