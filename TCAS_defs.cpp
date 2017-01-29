@@ -1,6 +1,7 @@
 #include <iostream>
 #include <cstring>
 #include <sstream>
+#include <boost/crc.hpp>
 #include "TCAS_defs.h"
 #include "Navigation.h"
 
@@ -136,6 +137,26 @@ int TCAS_msg::nonPaddedSize()
 
      return output.str();
  }
+
+
+
+ /*
+ *  Calculate the CRC32 for the TCAS_msg
+ *  
+ *  The CRC32 field of the TCAS_msg is ignored
+ *  Returns the CRC32.
+ */
+uint32_t TCAS_msg::getCRC32()
+{
+    //Some trickery to get an array of bytes
+    char *msgBuf = (char *)this;
+
+    boost::crc_32_type  result;
+
+    result.process_bytes(msgBuf, TCAS_MSG_BODY_LEN);
+
+    return result.checksum();
+}
 
 
 
