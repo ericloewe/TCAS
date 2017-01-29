@@ -12,6 +12,7 @@
 #include <vector>
 #include <unistd.h>
 #include <string>
+#include <string.h>
 #include "TCAS_defs.h"
 #include "TCAS_comms.h"
 #include "AC_sim.h"
@@ -54,8 +55,8 @@ int main(int argn, char *argv[])
         {
             char linebuff[128];
             initfile.getline(linebuff, 128);
-            std::string linebuffStr = std::string(linebuff);
-            if ( (linebuffStr == (TCAS_INIT_FILE_HDR)) )
+            //std::string linebuffStr = std::string(linebuff);
+            if (!strncmp(linebuff, TCAS_INIT_FILE_HDR, TCAS_INIT_FILE_HDR_LEN))
             {
                 initfile >> remotePort;
                 initfile.getline(linebuff, 128);
