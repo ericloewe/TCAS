@@ -1,5 +1,3 @@
-#include <g2.h>
-#include <g2_X11.h>
 #include "Radar.h"
 
 int virtual_dev, physical_dev; 
