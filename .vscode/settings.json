@@ -22,6 +22,10 @@
         "cstdarg": "cpp",
         "*htypeinfo": "cpp",
         "*hcstdio": "cpp",
-        "mutex": "cpp"
+        "mutex": "cpp",
+        "*h*h*h*h*h*htype_traits": "cpp",
+        "*hcstdint": "cpp",
+        "typeinfo": "cpp",
+        "*h*hctime": "cpp"
     }
 }

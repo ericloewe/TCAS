@@ -19,7 +19,7 @@
  *      - Open the broadcast socket (using the given port)
  *      - Spawn send and recv threads
  */ 
-broadcast_socket::broadcast_socket(int port)
+broadcast_socket::broadcast_socket(int destPort, int inPort)
 {
     //Create two IPv4 UDP socket
     sock_fd = socket(AF_INET, SOCK_DGRAM, 0);
@@ -32,7 +32,7 @@ broadcast_socket::broadcast_socket(int port)
     }
     
     char broadcastIP[] = "255.255.255.255";
-    int broadcastPort = port;
+    //int inPort = port;
     
     int broadcastPerm = 1;
     
@@ -63,7 +63,7 @@ broadcast_socket::broadcast_socket(int port)
     struct sockaddr_in localAddr;
     localAddr.sin_family = AF_INET;
     localAddr.sin_addr.s_addr = INADDR_BROADCAST;
-    localAddr.sin_port = htons(broadcastPort);
+    localAddr.sin_port = htons(inPort);
 
     if (bind(sock_fd, (sockaddr*)&localAddr, sizeof(struct sockaddr_in)) == -1)
     {
@@ -76,7 +76,7 @@ broadcast_socket::broadcast_socket(int port)
 
     broadcastAddr.sin_family = AF_INET;
     broadcastAddr.sin_addr.s_addr = inet_addr(broadcastIP);
-    broadcastAddr.sin_port = htons(broadcastPort);
+    broadcastAddr.sin_port = htons(destPort);
     
     //Paperwork to expedite future sends
     sendAddr = (sockaddr*) &broadcastAddr;

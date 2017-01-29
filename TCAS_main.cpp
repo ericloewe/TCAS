@@ -26,6 +26,10 @@ int main(int argn, char *argv[])
     
     
     uint64_t ownID = OWN_HEX;
+
+    int remotePort  = TCAS_DEFAULT_PORT;
+    int localPort   = TCAS_DEFAULT_PORT;
+
     double latInit = 0;
     double lonInit = 0;
     double hInit = 1000;
@@ -52,14 +56,23 @@ int main(int argn, char *argv[])
             std::string linebuffStr = std::string(linebuff);
             if (!(linebuffStr == TCAS_INIT_FILE_HDR))
             {
-                //TODO: Wire these variables in
+                initfile >> remotePort;
+                initfile.getline(linebuff, 128);
+                initfile >> localPort;
+                initfile.getline(linebuff, 128);
                 
                 initfile >> ownID;
+                initfile.getline(linebuff, 128);
                 initfile >> latInit;
+                initfile.getline(linebuff, 128);
                 initfile >> lonInit;
+                initfile.getline(linebuff, 128);
                 initfile >> hInit;
+                initfile.getline(linebuff, 128);
                 initfile >> headInit;
+                initfile.getline(linebuff, 128);
                 initfile >> spdInit;
+                initfile.getline(linebuff, 128);
                 
                 latInit *= pi/180;
                 lonInit *= pi/180;
@@ -74,7 +87,7 @@ int main(int argn, char *argv[])
     Radar_initialize();
     
     //Initialize networking
-    broadcast_socket transSocket(10505);
+    broadcast_socket transSocket(remotePort, localPort);
     
     //TODO - Initialize own model
 

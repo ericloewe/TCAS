@@ -62,7 +62,7 @@ class broadcast_socket
     
     public:
     
-    broadcast_socket(int port);
+    broadcast_socket(int destPort, int inPort);
     ~broadcast_socket();
     
     //Initialize everything

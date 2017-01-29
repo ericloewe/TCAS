@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 
+#define TCAS_DEFAULT_PORT 10505
+
 #define OWN_HEX 216412359
 #define MAX_TARGETS 16
 
