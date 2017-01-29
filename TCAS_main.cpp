@@ -26,6 +26,7 @@ int main(int argn, char *argv[])
     std::cout << "TCAS simulator Group C" << std::endl;
     std::cout << "Initializing..." << std::endl;
     
+    char tcasInitHeaderStr[] = TCAS_INIT_FILE_HDR;
     
     uint64_t ownID = OWN_HEX;
 
@@ -56,7 +57,9 @@ int main(int argn, char *argv[])
             char linebuff[128];
             initfile.getline(linebuff, 128);
             //std::string linebuffStr = std::string(linebuff);
-            if (!strncmp(linebuff, TCAS_INIT_FILE_HDR, TCAS_INIT_FILE_HDR_LEN))
+            int temp = strncmp(linebuff, TCAS_INIT_FILE_HDR, TCAS_INIT_FILE_HDR_LEN);
+            std::cout << "strncmp returns: " << temp << std::endl;
+            if (temp == 0)
             {
                 initfile >> remotePort;
                 initfile.getline(linebuff, 128);
