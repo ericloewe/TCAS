@@ -37,6 +37,59 @@ void TCAS_sim::UpdateTargetStates(){
 }
 
 
+bool TCAS_sim::analyse_collision_danger(const int which_target, double &time_to_approach){
+    
+    AC_state own_state = own_State_sim.getCurrentState();
+    
+    //relative position
+    double P[3] = {targetStates[which_target].x_pos - own_state.x_pos, 
+                  targetStates[which_target].y_pos - own_state.y_pos, 
+                  targetStates[which_target].z_pos - own_state.z_pos};
+    
+    //relative velocity
+    double V[3] = {targetStates[which_target].x_spd - own_state.x_spd, 
+                  targetStates[which_target].y_spd - own_state.y_spd, 
+                  targetStates[which_target].z_spd - own_state.z_spd};    
+    //
+    
+    double P_i_V = internal_product(P,V);
+    double R2 = internal_product(P,P);
+    double R = sqrt(R2);
+    
+    //No danger if target is distancing itself from us, and the distance is not dangerous at the moment.
+    if(P_i_V > 0 && R>min_safe_distance){
+        time_to_approach = 1e99; //large number
+        return false;
+    }
+    
+    //If the aircraft is already too close, well, it's too close
+    if(R < min_safe_distance){
+        time_to_approach = 0;
+        return true;
+    }
+    
+    //Evaluating weather the target will enter the sphere of radius min_safe_distance around us
+    double V2 = internal_product(V,V);
+    double Discriminant = P_i_V*P_i_V - V2*(R2-min_safe_distance*min_safe_distance);
+    if(Discriminant < 0){
+        time_to_approach = 1e99; //large number
+        return false;
+    }
+    
+    //Now computing the time until collision
+    time_to_approach = (-P_i_V-sqrt(Discriminant))/V2;
+    return true;
+}
+
+double internal_product(double A[3], double B[3]){
+    
+    double ret = 0.0;
+    
+    for(int i=0; i<3; i++)
+        ret += A[i]*B[i];
+    
+    return ret;
+}
 
 void printState (AC_state state)
 {
