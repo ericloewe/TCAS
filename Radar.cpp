@@ -6,7 +6,7 @@ bool centre_set = false;
 double Centre_Latitude, Centre_Longitude;
 double Centre_xyz[3];
 
-int background_colour, stuff_colour;
+int background_colour, stuff_colour, advisory_colour, resolution_colour, returning_colour;
 
 void Radar_initialize(){
         
@@ -17,9 +17,10 @@ void Radar_initialize(){
     g2_set_auto_flush (virtual_dev, 0);
     
     background_colour = g2_ink(physical_dev, 0, 0, 0);
-    stuff_colour      = g2_ink(physical_dev, 0, 0.75, 0); 
-    
-    g2_set_font_size (virtual_dev, 60);
+    stuff_colour      = g2_ink(physical_dev, 0, 0.75, 0);
+    advisory_colour   = g2_ink(physical_dev, 0.9, 0.9, 0.1);
+    resolution_colour = g2_ink(physical_dev, 0.9, 0.1, 0.1);
+    returning_colour  = g2_ink(physical_dev, 0.1, 0.1, 0.9);
     
     Radar_draw_background();
     g2_flush(virtual_dev);
@@ -63,7 +64,7 @@ void Radar_draw_background(){
     g2_line(virtual_dev, (W/2-R*inv_sqrt2), (H/2+R*inv_sqrt2), (W/2+R*inv_sqrt2), (H/2-R*inv_sqrt2));
 }
 
-void Radar_draw_plane(double P_xyz[3]){
+void Radar_draw_plane(double P_xyz[3], char ID_str[16]){
     
     if(!centre_set)
         _exit(1);
@@ -77,14 +78,51 @@ void Radar_draw_plane(double P_xyz[3]){
     
     if( (Dir_to_P_ENU[0]*Dir_to_P_ENU[0] + Dir_to_P_ENU[1]*Dir_to_P_ENU[1]) > Range*Range)
         return;
-
-    g2_pen(virtual_dev, stuff_colour);
-    g2_filled_circle(virtual_dev, (double)W/2.0 + (double)R*Dir_to_P_ENU[0]/Range, (double)H/2.0 + (double)R*Dir_to_P_ENU[1]/Range, r);
+    
+    int x = (double)W/2.0 + (double)R*Dir_to_P_ENU[0]/Range;
+    int y = (double)H/2.0 + (double)R*Dir_to_P_ENU[1]/Range;
+    g2_filled_circle(virtual_dev, x, y, r);
+    g2_set_font_size (virtual_dev, 10);
+    g2_string(virtual_dev, x+r, y+r, ID_str);
 }
 
-void Radar_update(AC_state ownState, std::vector<AC_state> targetStates){
+int get_colour(char *TCAS_status){
+    
+    if(strncmp(TCAS_status, "CLEAR",16)==0)
+        return stuff_colour;
+    
+    if(strncmp(TCAS_status, "ADVISORY",16)==0)
+        return advisory_colour;
+    
+    if(strncmp(TCAS_status, "RESOLVING",16)==0)
+        return resolution_colour;
+    
+    if(strncmp(TCAS_status, "RETURNING",16)==0)
+        return returning_colour;
+    
+    return 0;
+}
+
+void Radar_update(AC_state ownState, TCAS_state own_TCAS_State, std::vector<AC_state> targetStates, std::vector<TCAS_state> target_TCAS_States){
+    
+    char ID_str[16];
     
     Radar_draw_background();
+    
+    g2_pen(virtual_dev, get_colour(own_TCAS_State.status));
+    
+    g2_set_font_size (virtual_dev, 60);
+    g2_string(virtual_dev, 0, 0, own_TCAS_State.status);
+    if(strncmp(own_TCAS_State.status, "RESOLVING",16)==0 or strncmp(own_TCAS_State.status, "RETURNING",16)==0){
+        g2_set_font_size (virtual_dev, 20);
+        g2_string(virtual_dev, 0, 60, own_TCAS_State.resolution);
+    }
+    
+    sprintf(ID_str, "%lu", ownState.AC_ID);
+    g2_set_font_size (virtual_dev, 20);
+    g2_string(virtual_dev, 0, H-20, ID_str);
+    
+    
     
     double xyz[3] = {ownState.x_pos, ownState.y_pos, ownState.z_pos};
     Radar_set_centre(xyz);
@@ -98,8 +136,12 @@ void Radar_update(AC_state ownState, std::vector<AC_state> targetStates){
         xyz[1] = targetStates[i].y_pos;
         xyz[2] = targetStates[i].z_pos;
         
+        g2_pen(virtual_dev, get_colour(target_TCAS_States[i].status));
         
-        Radar_draw_plane(xyz);
+        sprintf(ID_str, "%lu", targetStates[i].AC_ID);
+        Radar_draw_plane(xyz, ID_str);
+        //g2_string(virtual_dev, 0, H-80, target_TCAS_States[i].status);
+        
     }
     
     g2_flush(virtual_dev);

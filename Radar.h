@@ -6,6 +6,8 @@ extern "C"{
 }
 #include <vector>
 #include <unistd.h>
+#include <string.h>
+
 #include "Navigation.h"
 #include "TCAS_defs.h"
 #include "TCAS_sim.h"
@@ -14,9 +16,9 @@ extern "C"{
 const int W = 800;
 const int H = 800;
 const int R = 350;
-const int r = 10;
+const int r = 7;
 
-const double Range = 35e3; //m
+const double Range = 5e3; //m
 
 void Radar_set_centre(double pos_xyz[3]);
 
@@ -25,5 +27,5 @@ void Radar_draw_background();
 
 void Radar_draw_plane(double P_xyz[3]);
 
-void Radar_update(AC_state ownState, std::vector<AC_state> targetStates);
+void Radar_update(AC_state ownState, TCAS_state own_TCAS_State, std::vector<AC_state> targetStates, std::vector<TCAS_state> target_TCAS_States);
 

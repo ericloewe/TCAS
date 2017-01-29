@@ -15,10 +15,11 @@ void TCAS_sim::sim_thread_fn(){
     
     while(1){
         usleep(900e3);
-        UpdateOwnState();
         UpdateTargetStates();
+        Actual_TCAS();
+        UpdateOwnState();
         printState(own_State_sim.getCurrentState());
-        Radar_update(own_State_sim.getCurrentState(), targetStates);
+        Radar_update(own_State_sim.getCurrentState(), own_TCAS_State, targetStates, target_TCAS_States);
         std::cout << "Targets list size: " << targetStates.size() << std::endl;
     }
     
@@ -27,7 +28,7 @@ void TCAS_sim::sim_thread_fn(){
 void TCAS_sim::UpdateOwnState()
 {
     own_State_sim.advanceToNow();
-    socket_ptr->updateStatus(own_State_sim.getCurrentState());
+    socket_ptr->updateStatus(own_State_sim.getCurrentState(), own_TCAS_State);
 }
 
 void TCAS_sim::UpdateTargetStates(){
@@ -36,6 +37,119 @@ void TCAS_sim::UpdateTargetStates(){
     
 }
 
+//Check if which_target is or is going to be within min_safe_distance of us
+//returns true if a resolution was taken
+//CHECK THAT IT'S NOT POSSIBLE TO ENTER RESOLUTION STATUS WITHOUT ACTUALLY CHOOSING A RESOLUTION
+bool TCAS_sim::resolve(int which_target){
+    
+    double time_to_approach;
+
+    if(!analyse_collision_danger(which_target, time_to_approach))
+        return false;
+        
+    cout << "########## Collision danger detected ###########" << endl;
+        
+    //If between 25s and 40s, enter ADVISORY status (no change on the course for now)
+    //If within 25s, enter RESOLVING status, choosing climb or descent based on the rules in the pptx
+        
+    if(time_to_approach < Resolution_Time){
+        
+        //If target is resolving, and we don't have a resolution already implemented or lack priority, complement its resolution. Otherwise, keep our resolution. 
+        cout << "----->> " << own_State_sim.AC_ID << " ; " << targetStates[which_target].AC_ID << "; " << (/*strncmp( target_TCAS_States[which_target].status, "RESOLVING",16) == 0 and*/ (strncmp(own_TCAS_State.status, "RESOLVING", 16)!=0 or  own_State_sim.AC_ID<targetStates[which_target].AC_ID)) << "<<------"   << endl;
+        cout << "----->> " << target_TCAS_States[which_target].status << " ; " << strncmp( target_TCAS_States[which_target].status, "RESOLVING",16) << endl;
+        if(strncmp( target_TCAS_States[which_target].status, "RESOLVING",16) == 0 and (strncmp(own_TCAS_State.status, "RESOLVING", 16)!=0 or  own_State_sim.AC_ID<targetStates[which_target].AC_ID)){
+            
+            if( strncmp( target_TCAS_States[which_target].resolution, "CLIMB",16) ){
+            
+                strncpy(own_TCAS_State.resolution, "DESCENT", 16);
+                own_State_sim.set_mode(DESCENT);
+                
+            
+            } else if( strncmp( target_TCAS_States[which_target].resolution, "DESCENT",16) ){
+
+                strncpy(own_TCAS_State.resolution, "CLIMB", 16);
+                own_State_sim.set_mode(CLIMB);
+                
+            }
+            else{
+                cout << "Aircraft ID " << targetStates[which_target].AC_ID << "Sent an invalid resolution" << endl;
+            }
+        }
+        //Target isnt resolving
+        else{
+            strncpy(own_TCAS_State.resolution, "DESCENT", 16);
+            own_State_sim.set_mode(DESCENT);
+        }
+        
+        strncpy(own_TCAS_State.status, "RESOLVING", 16);
+        own_TCAS_State.res_value = 5; //m/s
+        own_TCAS_State.intruder_hex = targetStates[which_target].AC_ID;
+        
+        return true;
+    }
+    
+    if(time_to_approach < Advisory_Time){
+        
+        strncpy(own_TCAS_State.status, "ADVISORY", 16);
+        own_TCAS_State.intruder_hex = targetStates[which_target].AC_ID;
+        
+        return true; //?
+    }
+    
+    return false;
+}
+
+void TCAS_sim::Actual_TCAS(){
+    
+    if(strncmp(own_TCAS_State.status, "CLEAR",16) == 0){
+        
+        //check if any target is or is going to be within min_safe_distance of us. 
+        
+        for(unsigned int i=0; i<targetStates.size(); i++){
+            if(resolve(i))
+                break;
+        }
+    
+    }else if(strncmp(own_TCAS_State.status, "ADVISORY",16) == 0){
+        
+        //Same as above, but only for the current intruder
+        for(unsigned int i=0; i<targetStates.size(); i++){
+            if(own_TCAS_State.intruder_hex == targetStates[i].AC_ID){
+                if( !resolve(i) ){
+                    strncpy(own_TCAS_State.status, "CLEAR", 16);
+                }
+                return;
+            }
+        }
+        
+    }else if(strncmp(own_TCAS_State.status, "RESOLVING",16) == 0){
+        
+        //Same as above, but only for the current intruder
+        for(unsigned int i=0; i<targetStates.size(); i++){
+            if(own_TCAS_State.intruder_hex == targetStates[i].AC_ID){
+                //check if we need to continue resolving. Calling resolve will also correct the resolution to whatever is compatible with the intruder
+                if( !resolve(i) ){
+                    //If not, set status to RETURNING, and put the controls at normal altitude
+                    strncpy(own_TCAS_State.status, "RETURNING", 16);
+                    own_State_sim.set_mode(CRUISE);
+                }
+                return;
+            }
+        }
+        
+        
+    }else if(strncmp(own_TCAS_State.status, "RETURNING",16) == 0){
+        //If the aircraft has already reached the normal altitude (within a few metres), set status to CLEAR
+        if( own_State_sim.at_h_ref){
+            strncpy(own_TCAS_State.status, "CLEAR", 16);
+        }
+        
+    }else{
+        cout << "Current TCAS status is invalid" << endl;
+        exit(1);
+    }
+    
+}
 
 bool TCAS_sim::analyse_collision_danger(const int which_target, double &time_to_approach){
     
