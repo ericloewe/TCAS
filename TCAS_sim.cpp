@@ -55,23 +55,28 @@ bool TCAS_sim::resolve(int which_target){
     if(time_to_approach < Resolution_Time){
         
         //If target is resolving, and we don't have a resolution already implemented or lack priority, complement its resolution. Otherwise, keep our resolution. 
-        cout << "----->> " << own_State_sim.AC_ID << " ; " << targetStates[which_target].AC_ID << "; " << (/*strncmp( target_TCAS_States[which_target].status, "RESOLVING",16) == 0 and*/ (strncmp(own_TCAS_State.status, "RESOLVING", 16)!=0 or  own_State_sim.AC_ID<targetStates[which_target].AC_ID)) << "<<------"   << endl;
-        cout << "----->> " << target_TCAS_States[which_target].status << " ; " << strncmp( target_TCAS_States[which_target].status, "RESOLVING",16) << endl;
+        //cout << "----->> " << own_State_sim.AC_ID << " ; " << targetStates[which_target].AC_ID << "; " << (strncmp( target_TCAS_States[which_target].status, "RESOLVING",16) == 0 and (strncmp(own_TCAS_State.status, "RESOLVING", 16)!=0 or  own_State_sim.AC_ID<targetStates[which_target].AC_ID)) << "<<------"   << endl;
+        //cout << "----->> " << target_TCAS_States[which_target].status << " ; " << strncmp( target_TCAS_States[which_target].status, "RESOLVING",16) << endl;
         if(strncmp( target_TCAS_States[which_target].status, "RESOLVING",16) == 0 and (strncmp(own_TCAS_State.status, "RESOLVING", 16)!=0 or  own_State_sim.AC_ID<targetStates[which_target].AC_ID)){
             
-            if( strncmp( target_TCAS_States[which_target].resolution, "CLIMB",16) ){
+            cout << "Complementing" << endl;
             
+            if( strncmp( target_TCAS_States[which_target].resolution, "CLIMB",16)==0 ){
+                //cout << "The other one was climbing. This one will now descent." << endl;
                 strncpy(own_TCAS_State.resolution, "DESCENT", 16);
                 own_State_sim.set_mode(DESCENT);
                 
             
-            } else if( strncmp( target_TCAS_States[which_target].resolution, "DESCENT",16) ){
+            } else if( strncmp( target_TCAS_States[which_target].resolution, "DESCENT",16)==0 ){
 
                 strncpy(own_TCAS_State.resolution, "CLIMB", 16);
                 own_State_sim.set_mode(CLIMB);
                 
             }
+            //If target is not resolving, decide on the resolution based on altitude
             else{
+                double target_pos_xyz[3];
+                double    own_pos_xyz[3];
                 cout << "Aircraft ID " << targetStates[which_target].AC_ID << "Sent an invalid resolution" << endl;
             }
         }
