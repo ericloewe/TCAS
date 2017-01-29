@@ -11,6 +11,7 @@
 
 #define DEFAULT_MSG_INIT_SIZE 256 //???
 #define TCAS_MSG_LEN 124
+#define TCAS_MSG_BODY_LEN 120
 
 #define TCAS_MSG_HEADER "ACIP TCAS   V01\0"
 #define TCAS_MSG_STRLEN 16
@@ -77,6 +78,9 @@ public:
     void updateTCASStatus(TCAS_state state);
 
     std::string toString();
+
+    //Calculate the CRC32 for the TCAS_msg (ignoring the CRC32 field)
+    uint32_t getCRC32();
 };
 
 

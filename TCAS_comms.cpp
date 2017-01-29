@@ -163,6 +163,10 @@ void broadcast_socket::sendThreadFunction()
 
             msgUpdated = false;
 
+            //Calculate CRC32
+            uint32_t msgCRC = stagedMsg.getCRC32();
+            stagedMsg.CRC = msgCRC;
+
             if (sendto(sock_fd, (void*)&stagedMsg, TCAS_MSG_LEN, 0, 
                 sendAddr, sendAddrSize) != TCAS_MSG_LEN)
             {
@@ -356,16 +360,16 @@ void broadcast_socket::updateStatus(AC_state ownState)
  *  The return value represents the number of targets in the list
  */
 int broadcast_socket::getUpdatedTargetsStatus(
-            std::vector<AC_state>& targetsStatus,
-            std::vector<TCAS_state>& targetsTCAS)
+            std::vector<AC_state>& targetsStatusVector,
+            std::vector<TCAS_state>& targetsTCASVector)
 {
     //Preallocate for time efficiency
-    targetsStatus.reserve(MAX_TARGETS);
-    targetsTCAS.reserve(MAX_TARGETS);
+    targetsStatusVector.reserve(MAX_TARGETS);
+    targetsTCASVector.reserve(MAX_TARGETS);
 
     //Ensure the vectors are empty
-    targetsStatus.clear();
-    targetsTCAS.clear();
+    targetsStatusVector.clear();
+    targetsTCASVector.clear();
     
     //Lock the targets list
     std::lock_guard<std::mutex> lock(targetsMutex);
@@ -378,14 +382,13 @@ int broadcast_socket::getUpdatedTargetsStatus(
         if (targetsList[i].AC_ID != 0)
         {
             targetsTracked++;
-            targetsStatus.push_back(targetsList[i]);
-            targetsTCAS.push_back(targetsTCAS[i]);
+            targetsStatusVector.push_back(targetsList[i]);
+            targetsTCASVector.push_back(targetsTCAS[i]);
         }
     }
 
     return targetsTracked;
 }
-
 
 
 
