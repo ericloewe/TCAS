@@ -166,12 +166,13 @@ void broadcast_socket::sendThreadFunction()
             //Calculate CRC32
             uint32_t msgCRC = stagedMsg.getCRC32();
             stagedMsg.CRC = msgCRC;
-
-            if (sendto(sock_fd, (void*)&stagedMsg, TCAS_MSG_LEN, 0, 
-                sendAddr, sendAddrSize) != TCAS_MSG_LEN)
+            
+            int aux = sendto(sock_fd, (void*)&stagedMsg, TCAS_MSG_LEN, 0, 
+                sendAddr, sendAddrSize);
+            if ( aux != TCAS_MSG_LEN)
             {
                 //TODO throw exception
-                fprintf(stderr, "sendto error");
+                fprintf(stderr, "sendto error : %d ; %d\n", aux, errno);
                 exit(1);
             }
         }

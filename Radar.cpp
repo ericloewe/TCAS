@@ -5,6 +5,7 @@ int virtual_dev, physical_dev;
 bool centre_set = false;
 double Centre_Latitude, Centre_Longitude;
 double Centre_xyz[3];
+double Centre_V_enu[3];
 
 int background_colour, stuff_colour, advisory_colour, resolution_colour, returning_colour;
 
@@ -26,8 +27,10 @@ void Radar_initialize(){
     g2_flush(virtual_dev);
 }
 
-void Radar_set_centre(double pos_xyz[3]){
+void Radar_set_centre(AC_state centre_craft){
     
+    //Setting the centre position (xyz, Latitude and Longitude)
+    double pos_xyz[3] = {centre_craft.x_pos, centre_craft.y_pos, centre_craft.z_pos};
     for(int i=0; i<3; i++){
         Centre_xyz[i] = pos_xyz[i];
     }
@@ -35,6 +38,11 @@ void Radar_set_centre(double pos_xyz[3]){
     xyz_to_llh(Centre_xyz, Centre_llh);
     Centre_Latitude = Centre_llh[0];
     Centre_Longitude = Centre_llh[1];
+    
+    //Setting the centre velocity (enu)
+    double vel_xyz[3] = {centre_craft.x_spd, centre_craft.y_spd, centre_craft.z_spd};
+    xyz_to_enu(vel_xyz, Centre_Latitude, Centre_Longitude, Centre_V_enu);
+
     
     centre_set = true;
     
@@ -79,8 +87,18 @@ void Radar_draw_plane(double P_xyz[3], char ID_str[16]){
     if( (Dir_to_P_ENU[0]*Dir_to_P_ENU[0] + Dir_to_P_ENU[1]*Dir_to_P_ENU[1]) > Range*Range)
         return;
     
-    int x = (double)W/2.0 + (double)R*Dir_to_P_ENU[0]/Range;
-    int y = (double)H/2.0 + (double)R*Dir_to_P_ENU[1]/Range;
+    double Dir_to_P_AirFrame[2]; //Horizontal coords only
+    
+    double aux_V_enu[3];
+    aux_V_enu[0] = Centre_V_enu[0]; aux_V_enu[1] = Centre_V_enu[1]; aux_V_enu[2] = 0; //This coordinates are horizontal only. vertical components of speed are ignored.
+    double mag_V = sqrt(aux_V_enu[0]*aux_V_enu[0] + aux_V_enu[1]*aux_V_enu[1]);
+    Dir_to_P_AirFrame[0] = internal_product(Dir_to_P_ENU, aux_V_enu)/mag_V; // Component along velocity
+    
+    aux_V_enu[0] = Centre_V_enu[1]; aux_V_enu[1] = -Centre_V_enu[0]; //The normal to this vector
+    Dir_to_P_AirFrame[1] = internal_product(Dir_to_P_ENU, aux_V_enu)/mag_V; // Component to the right of velocity
+    
+    int x = (double)W/2.0 + (double)R*Dir_to_P_AirFrame[1]/Range;
+    int y = (double)H/2.0 + (double)R*Dir_to_P_AirFrame[0]/Range;
     g2_filled_circle(virtual_dev, x, y, r);
     g2_set_font_size (virtual_dev, 10);
     g2_string(virtual_dev, x+r, y+r, ID_str);
@@ -124,26 +142,32 @@ void Radar_update(AC_state ownState, TCAS_state own_TCAS_State, std::vector<AC_s
         g2_string(virtual_dev, 0, 60, own_TCAS_State.resolution);
     }
     
+    g2_pen(virtual_dev, stuff_colour);
+    
     sprintf(ID_str, "%lu", ownState.AC_ID);
     g2_set_font_size (virtual_dev, 20);
     g2_string(virtual_dev, 0, H-20, ID_str);
     
-    
-    
-    double xyz[3] = {ownState.x_pos, ownState.y_pos, ownState.z_pos};
-    Radar_set_centre(xyz);
+    Radar_set_centre(ownState);
     char pos_STR[32];
     double P_llh[3];
-    xyz_to_llh(xyz, P_llh);
+    xyz_to_llh(Centre_xyz, P_llh);
     sprintf(pos_STR, "%7.4fDeg %7.4fDeg %6.1fm", P_llh[0]*180.0/pi, P_llh[1]*180.0/pi, P_llh[2]);
     cout << pos_STR;
     g2_string(virtual_dev, W-300, 20, pos_STR);
+    
+    double heading = atan2(Centre_V_enu[0], Centre_V_enu[1])*180/pi;
+    if(heading<0)
+        heading+=360;
+    sprintf(pos_STR, "HEAD %03d", (int)heading);
+    g2_string(virtual_dev, W/2-35, H/2+R+10, pos_STR);
     
     for(unsigned int i=0; i<targetStates.size(); i++){
         
         if(ownState.AC_ID==0)
             continue;
         
+        double xyz[3];
         xyz[0] = targetStates[i].x_pos;
         xyz[1] = targetStates[i].y_pos;
         xyz[2] = targetStates[i].z_pos;

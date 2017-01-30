@@ -45,7 +45,7 @@ void TCAS_sim::UpdateTargetStates(){
 }
 
 //Check if which_target is or is going to be within min_safe_distance of us
-//returns true if a resolution was taken
+//returns true if a resolution (or advisory ?) was taken
 //CHECK THAT IT'S NOT POSSIBLE TO ENTER RESOLUTION STATUS WITHOUT ACTUALLY CHOOSING A RESOLUTION
 bool TCAS_sim::resolve(int which_target){
     
