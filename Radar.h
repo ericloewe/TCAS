@@ -18,7 +18,7 @@ const int H = 800;
 const int R = 350;
 const int r = 7;
 
-const double Range = 5e3; //m
+const double Range = 35e3; //m
 
 void Radar_set_centre(double pos_xyz[3]);
 

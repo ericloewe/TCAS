@@ -13,14 +13,21 @@ TCAS_sim::TCAS_sim(AC_sim new_State_sim, broadcast_socket* new_socket_ptr){
 
 void TCAS_sim::sim_thread_fn(){
     
+    int counter = 0;
+    
     while(1){
         usleep(900e3);
         UpdateTargetStates();
         Actual_TCAS();
         UpdateOwnState();
-        printState(own_State_sim.getCurrentState());
         Radar_update(own_State_sim.getCurrentState(), own_TCAS_State, targetStates, target_TCAS_States);
-        std::cout << "Targets list size: " << targetStates.size() << std::endl;
+        
+        //Debug
+        if(counter%3==0){
+            printState(own_State_sim.getCurrentState());
+            std::cout << "Targets list size: " << targetStates.size() << std::endl;
+        }
+        counter++;
     }
     
 }
@@ -47,7 +54,7 @@ bool TCAS_sim::resolve(int which_target){
     if(!analyse_collision_danger(which_target, time_to_approach))
         return false;
         
-    cout << "########## Collision danger detected ###########" << endl;
+    //cout << "########## Collision danger detected ###########" << endl;
         
     //If between 25s and 40s, enter ADVISORY status (no change on the course for now)
     //If within 25s, enter RESOLVING status, choosing climb or descent based on the rules in the pptx
@@ -55,35 +62,53 @@ bool TCAS_sim::resolve(int which_target){
     if(time_to_approach < Resolution_Time){
         
         //If target is resolving, and we don't have a resolution already implemented or lack priority, complement its resolution. Otherwise, keep our resolution. 
-        //cout << "----->> " << own_State_sim.AC_ID << " ; " << targetStates[which_target].AC_ID << "; " << (strncmp( target_TCAS_States[which_target].status, "RESOLVING",16) == 0 and (strncmp(own_TCAS_State.status, "RESOLVING", 16)!=0 or  own_State_sim.AC_ID<targetStates[which_target].AC_ID)) << "<<------"   << endl;
-        //cout << "----->> " << target_TCAS_States[which_target].status << " ; " << strncmp( target_TCAS_States[which_target].status, "RESOLVING",16) << endl;
-        if(strncmp( target_TCAS_States[which_target].status, "RESOLVING",16) == 0 and (strncmp(own_TCAS_State.status, "RESOLVING", 16)!=0 or  own_State_sim.AC_ID<targetStates[which_target].AC_ID)){
+        if(strncmp( target_TCAS_States[which_target].status, "RESOLVING",16) == 0 ){
             
-            cout << "Complementing" << endl;
-            
-            if( strncmp( target_TCAS_States[which_target].resolution, "CLIMB",16)==0 ){
-                //cout << "The other one was climbing. This one will now descent." << endl;
-                strncpy(own_TCAS_State.resolution, "DESCENT", 16);
-                own_State_sim.set_mode(DESCENT);
+            if(strncmp(own_TCAS_State.status, "RESOLVING", 16)!=0 or  own_State_sim.AC_ID<targetStates[which_target].AC_ID){
+                cout << "Complementing" << endl;
                 
-            
-            } else if( strncmp( target_TCAS_States[which_target].resolution, "DESCENT",16)==0 ){
+                if( strncmp( target_TCAS_States[which_target].resolution, "CLIMB",16)==0 ){
+                    //cout << "The other one was climbing. This one will now descent." << endl;
+                    strncpy(own_TCAS_State.resolution, "DESCEND", 16);
+                    own_State_sim.set_mode(DESCEND);
+                    
+                
+                } else if( strncmp( target_TCAS_States[which_target].resolution, "DESCEND",16)==0 ){
 
-                strncpy(own_TCAS_State.resolution, "CLIMB", 16);
-                own_State_sim.set_mode(CLIMB);
-                
-            }
-            //If target is not resolving, decide on the resolution based on altitude
-            else{
-                double target_pos_xyz[3];
-                double    own_pos_xyz[3];
-                cout << "Aircraft ID " << targetStates[which_target].AC_ID << "Sent an invalid resolution" << endl;
+                    strncpy(own_TCAS_State.resolution, "CLIMB", 16);
+                    own_State_sim.set_mode(CLIMB);
+                    
+                }
+            
+                else{                
+                    cout << "Aircraft ID " << targetStates[which_target].AC_ID << "Sent an invalid resolution" << endl;
+                }
             }
         }
-        //Target isnt resolving
+        //Target isnt resolving - decide on our resolution based on altitude
         else{
-            strncpy(own_TCAS_State.resolution, "DESCENT", 16);
-            own_State_sim.set_mode(DESCENT);
+            
+            AC_state target_state = targetStates[which_target];
+            AC_state own_state = own_State_sim.getCurrentState();
+            
+            double target_pos_xyz[3] = {target_state.x_pos, target_state.y_pos, target_state.z_pos};
+            double own_pos_xyz[3] = {own_state.x_pos, own_state.y_pos, own_state.z_pos};
+            
+            double target_pos_llh[3];
+            double    own_pos_llh[3];
+            
+            xyz_to_llh(target_pos_xyz, target_pos_llh);
+            xyz_to_llh(own_pos_xyz, own_pos_llh);
+            
+            if(own_pos_llh[2] <= target_pos_llh[2]){
+                strncpy(own_TCAS_State.resolution, "DESCEND", 16);
+                own_State_sim.set_mode(DESCEND);
+            }else{
+                strncpy(own_TCAS_State.resolution, "CLIMB", 16);
+                own_State_sim.set_mode(CLIMB);                
+            }
+            
+            
         }
         
         strncpy(own_TCAS_State.status, "RESOLVING", 16);
@@ -212,6 +237,7 @@ double internal_product(double A[3], double B[3]){
 
 void printState (AC_state state)
 {
+    cout << endl;
     cout << "Aircraft ID: " << state.AC_ID << endl;
     
     double P_xyz[3] = {state.x_pos, state.y_pos, state.z_pos};
@@ -232,7 +258,7 @@ void printState (AC_state state)
     for(int i=0; i<3; i++)
         cout << V_enu[i] << " ";
     cout << "(m/s)" << endl;
-    
+    cout << endl;
     /*cout << "Position: " << state.x_pos << "; " << state.y_pos << "; " << state.z_pos << endl;
     cout << "Velocity: " << state.x_spd << "; " << state.y_spd << "; " << state.z_spd << endl;*/
 }

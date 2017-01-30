@@ -86,7 +86,7 @@ void AC_sim::f(const AC_state now_state, double f_value[6])
     if(mode==CLIMB)
         h_obj+=Altitude_Variation;  
         
-    if(mode==DESCENT)
+    if(mode==DESCEND)
         h_obj-=Altitude_Variation;
     
     if(mode==CRUISE && abs(h_ref-Pos_llh[2])<10)

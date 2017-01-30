@@ -11,7 +11,7 @@ using namespace std;
 
 const double Altitude_Variation = 300; //m
 
-enum {CRUISE=0, CLIMB, DESCENT};
+enum {CRUISE=0, CLIMB, DESCEND};
 
 //typedef std::chrono::duration<long long int> milliDuration;
 using namespace std::chrono;

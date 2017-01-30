@@ -144,9 +144,9 @@ void broadcast_socket::sendThreadFunction()
         //Set the time when we next want to wake up (1s)
         //AFAICT, this stuff is all in nanoseconds
         nextSend += oneSecond;
-        std::cout << "sendThread: tick - next send at: ";
+        //std::cout << "sendThread: tick - next send at: ";
         auto nextSendTime = nextSend.time_since_epoch();
-        std::cout << nextSendTime.count() << std::endl;
+        //std::cout << nextSendTime.count() << std::endl;
 
         if (!msgInitialized)
         {
@@ -228,11 +228,11 @@ void broadcast_socket::recvThreadFunction()
         //Ignore our own messages and invalid hex
         if (tempRemoteMsg.ac_id != stagedMsg.ac_id && tempRemoteMsg.ac_id != 0)
         {
-            std::cout << "Received " << receivedBytes << " bytes!" << std::endl;   
+            /*std::cout << "Received " << receivedBytes << " bytes!" << std::endl;   
             std::string output = tempRemoteMsg.toString();
             std::cout << "Begin TCAS message:" << std::endl;
             std::cout << output;
-            std::cout << "End TCAS message." << std::endl;
+            std::cout << "End TCAS message." << std::endl;*/
 
             //TODO: VALIDATE CHECKSUM
 
