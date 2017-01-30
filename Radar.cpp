@@ -84,6 +84,12 @@ void Radar_draw_plane(double P_xyz[3], char ID_str[16]){
     g2_filled_circle(virtual_dev, x, y, r);
     g2_set_font_size (virtual_dev, 10);
     g2_string(virtual_dev, x+r, y+r, ID_str);
+    
+    char pos_STR[32];
+    double P_llh[3];
+    xyz_to_llh(P_xyz, P_llh);
+    sprintf(pos_STR, "%7.4fDeg %7.4fDeg %6.1fm", P_llh[0]*180.0/pi, P_llh[1]*180.0/pi, P_llh[2]);
+    g2_string(virtual_dev, x+r, y-r, pos_STR);
 }
 
 int get_colour(char *TCAS_status){
@@ -126,6 +132,12 @@ void Radar_update(AC_state ownState, TCAS_state own_TCAS_State, std::vector<AC_s
     
     double xyz[3] = {ownState.x_pos, ownState.y_pos, ownState.z_pos};
     Radar_set_centre(xyz);
+    char pos_STR[32];
+    double P_llh[3];
+    xyz_to_llh(xyz, P_llh);
+    sprintf(pos_STR, "%7.4fDeg %7.4fDeg %6.1fm", P_llh[0]*180.0/pi, P_llh[1]*180.0/pi, P_llh[2]);
+    cout << pos_STR;
+    g2_string(virtual_dev, W-300, 20, pos_STR);
     
     for(unsigned int i=0; i<targetStates.size(); i++){
         
