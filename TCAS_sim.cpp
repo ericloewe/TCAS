@@ -212,21 +212,27 @@ bool TCAS_sim::analyse_collision_danger(const int which_target, double &time_to_
     double R2 = internal_product(P,P);
     double R = sqrt(R2);
     
+    double Danger_Range = min_safe_distance;
+    
+    //hysteresis to avoid flickering between resolution and returning
+    if(strncmp(own_TCAS_State.status, "RESOLVING", 16)==0)
+        Danger_Range = min_return_distance;
+    
     //No danger if target is distancing itself from us, and the distance is not dangerous at the moment.
-    if(P_i_V > 0 && R>min_safe_distance){
+    if(P_i_V > 0 && R>Danger_Range){
         time_to_approach = 1e99; //large number
         return false;
     }
     
     //If the aircraft is already too close, well, it's too close
-    if(R < min_safe_distance){
+    if(R < Danger_Range){
         time_to_approach = 0;
         return true;
     }
     
-    //Evaluating weather the target will enter the sphere of radius min_safe_distance around us
+    //Evaluating weather the target will enter the sphere of radius Danger_Range around us
     double V2 = internal_product(V,V);
-    double Discriminant = P_i_V*P_i_V - V2*(R2-min_safe_distance*min_safe_distance);
+    double Discriminant = P_i_V*P_i_V - V2*(R2-Danger_Range*Danger_Range);
     if(Discriminant < 0){
         time_to_approach = 1e99; //large number
         return false;
