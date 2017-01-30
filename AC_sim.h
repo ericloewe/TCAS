@@ -10,6 +10,7 @@
 using namespace std;
 
 const double Altitude_Variation = 300; //m
+const double Max_Climb_Angle = 2; //º
 
 enum {CRUISE=0, CLIMB, DESCEND};
 

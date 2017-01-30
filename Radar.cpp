@@ -106,7 +106,7 @@ int get_colour(char *TCAS_status){
     if(strncmp(TCAS_status, "RETURNING",16)==0)
         return returning_colour;
     
-    return 0;
+    return 0; //white
 }
 
 void Radar_update(AC_state ownState, TCAS_state own_TCAS_State, std::vector<AC_state> targetStates, std::vector<TCAS_state> target_TCAS_States){

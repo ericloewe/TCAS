@@ -185,6 +185,11 @@ bool TCAS_sim::analyse_collision_danger(const int which_target, double &time_to_
     
     AC_state own_state = own_State_sim.getCurrentState();
     
+    //std::chrono::high_resolution_clock::time_point curr_time = std::chrono::high_resolution_clock::now();
+    milliseconds delta_t_chrono = duration_cast<milliseconds>(own_state.time_of_issue - targetStates[which_target].time_of_issue);
+    
+    double issue_delay = (double)delta_t_chrono.count()/1000.0;
+    
     //relative position
     double P[3] = {targetStates[which_target].x_pos - own_state.x_pos, 
                   targetStates[which_target].y_pos - own_state.y_pos, 
@@ -221,7 +226,7 @@ bool TCAS_sim::analyse_collision_danger(const int which_target, double &time_to_
     }
     
     //Now computing the time until collision
-    time_to_approach = (-P_i_V-sqrt(Discriminant))/V2;
+    time_to_approach = (-P_i_V-sqrt(Discriminant))/V2 - issue_delay;
     return true;
 }
 

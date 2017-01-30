@@ -40,8 +40,8 @@ private:
     //Performs the decisions characterstic of a TCAS system
     bool resolve(int which_target);
     void Actual_TCAS();
-    const double min_safe_distance = 300; //m
-    const double Resolution_Time = 25; //s
+    const double min_safe_distance = 600; //m
+    const double Resolution_Time = 30; //s
     const double Advisory_Time = 40; //s
     
     

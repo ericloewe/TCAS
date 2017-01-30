@@ -101,10 +101,10 @@ void AC_sim::f(const AC_state now_state, double f_value[6])
     //~ cout << "-->Climb angle: " << climb_angle << endl;
     
     //limitting climb angle
-    if(climb_angle > 1)
-        climb_angle = 1;
-    if(climb_angle <-1)
-        climb_angle = -1;
+    if(climb_angle > Max_Climb_Angle)
+        climb_angle = Max_Climb_Angle;
+    if(climb_angle <-Max_Climb_Angle)
+        climb_angle = -Max_Climb_Angle;
         
         
     //Now converting to radians
