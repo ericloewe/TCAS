@@ -134,7 +134,6 @@ void TCAS_sim::Actual_TCAS(){
     if(strncmp(own_TCAS_State.status, "CLEAR",16) == 0){
         
         //check if any target is or is going to be within min_safe_distance of us. 
-        
         for(unsigned int i=0; i<targetStates.size(); i++){
             if(resolve(i))
                 break;
@@ -173,6 +172,14 @@ void TCAS_sim::Actual_TCAS(){
         if( own_State_sim.at_h_ref){
             strncpy(own_TCAS_State.status, "CLEAR", 16);
         }
+        
+        //check if any target is or is going to be within min_safe_distance of us. 
+        for(unsigned int i=0; i<targetStates.size(); i++){
+            if(resolve(i))
+                break;
+        }
+        
+        
         
     }else{
         cout << "Current TCAS status is invalid" << endl;
