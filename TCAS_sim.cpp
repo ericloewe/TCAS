@@ -89,7 +89,7 @@ bool TCAS_sim::resolve(int which_target){
         if(strncmp( target_TCAS_States[which_target].status, "RESOLVING",16) == 0 ){
             
             if(strncmp(own_TCAS_State.status, "RESOLVING", 16)!=0 or  own_State_sim.AC_ID<targetStates[which_target].AC_ID){
-                cout << "Complementing" << endl;
+                //cout << "Complementing" << endl;
                 
                 if( strncmp( target_TCAS_States[which_target].resolution, "CLIMB",16)==0 ){
                     //cout << "The other one was climbing. This one will now descent." << endl;
