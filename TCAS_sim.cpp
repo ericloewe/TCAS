@@ -11,6 +11,20 @@ TCAS_sim::TCAS_sim(AC_sim new_State_sim, broadcast_socket* new_socket_ptr){
     
 }
 
+
+
+/*
+ *  Getter for our own TCAS state
+ *
+ *  Useful for UI work
+ */
+TCAS_state TCAS_sim::get_own_TCAS_State()
+{
+    return own_TCAS_State;
+}
+
+
+
 void TCAS_sim::sim_thread_fn(){
     
     int counter = 0;
@@ -23,14 +37,16 @@ void TCAS_sim::sim_thread_fn(){
         Radar_update(own_State_sim.getCurrentState(), own_TCAS_State, targetStates, target_TCAS_States);
         
         //Debug
-        if(counter%3==0){
+        /*if(counter%3==0){
             printState(own_State_sim.getCurrentState());
             std::cout << "Targets list size: " << targetStates.size() << std::endl;
-        }
+        }*/
         counter++;
     }
     
 }
+
+
 
 void TCAS_sim::UpdateOwnState()
 {
@@ -38,11 +54,15 @@ void TCAS_sim::UpdateOwnState()
     socket_ptr->updateStatus(own_State_sim.getCurrentState(), own_TCAS_State);
 }
 
+
+
 void TCAS_sim::UpdateTargetStates(){
     
     socket_ptr->getUpdatedTargetsStatus(targetStates, target_TCAS_States);
     
 }
+
+
 
 //Check if which_target is or is going to be within min_safe_distance of us
 //returns true if a resolution was taken
@@ -129,6 +149,8 @@ bool TCAS_sim::resolve(int which_target){
     return false;
 }
 
+
+
 void TCAS_sim::Actual_TCAS(){
     
     if(strncmp(own_TCAS_State.status, "CLEAR",16) == 0){
@@ -164,29 +186,25 @@ void TCAS_sim::Actual_TCAS(){
                 }
                 return;
             }
-        }
-        
-        
+        } 
     }else if(strncmp(own_TCAS_State.status, "RETURNING",16) == 0){
         //If the aircraft has already reached the normal altitude (within a few metres), set status to CLEAR
         if( own_State_sim.at_h_ref){
             strncpy(own_TCAS_State.status, "CLEAR", 16);
         }
-        
         //check if any target is or is going to be within min_safe_distance of us. 
         for(unsigned int i=0; i<targetStates.size(); i++){
             if(resolve(i))
                 break;
         }
-        
-        
-        
     }else{
         cout << "Current TCAS status is invalid" << endl;
         exit(1);
     }
     
 }
+
+
 
 bool TCAS_sim::analyse_collision_danger(const int which_target, double &time_to_approach){
     

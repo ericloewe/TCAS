@@ -17,7 +17,7 @@
 class TCAS_sim
 {
 public:
-    const static int NumOfTargets = 10; //Maximum???
+    const static int NumOfTargets = MAX_TARGETS; //Maximum???
     
     
 private:
@@ -51,6 +51,7 @@ private:
 public:
 
     TCAS_sim(AC_sim new_State_sim, broadcast_socket* new_socket_ptr);
+    TCAS_state get_own_TCAS_State();
     
 };
 

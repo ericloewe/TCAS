@@ -145,7 +145,7 @@ void broadcast_socket::sendThreadFunction()
         //AFAICT, this stuff is all in nanoseconds
         nextSend += oneSecond;
         //std::cout << "sendThread: tick - next send at: ";
-        auto nextSendTime = nextSend.time_since_epoch();
+        //auto nextSendTime = nextSend.time_since_epoch();
         //std::cout << nextSendTime.count() << std::endl;
 
         if (!msgInitialized)
@@ -234,7 +234,18 @@ void broadcast_socket::recvThreadFunction()
             std::cout << output;
             std::cout << "End TCAS message." << std::endl;*/
 
-            //TODO: VALIDATE CHECKSUM
+            /*  At this point, the CRC would be checked and, if it doesn't match,
+                the message would be rejected.
+                However, we fully expect some groups to not get the CRC32 right...
+                Code follows:
+             */
+            /*
+            if (tempRemoteMsg.getCRC32() == tempRemoteMsg.CRC)
+            {
+                //Continue processing
+                //If not, ignore the message
+            }
+             */
 
             if (!processTarget(tempRemoteMsg,recvTime))
             {
@@ -278,6 +289,18 @@ bool broadcast_socket::processTarget(TCAS_msg tgtMsg,
         {
             targetsList[i] = newState;
             targetsTCAS[i] = newTCAS;
+            timeout[i]     = TCAS_TIMEOUT;
+
+            if (tgtMsg.getCRC32() == tgtMsg.CRC)
+            {
+                //Valid CRC
+                CRC32status[i] = true;
+            }
+            else
+            {
+                //Invalid CRC
+                CRC32status[i] = false;
+            }
             return true;
         }
     }
@@ -347,7 +370,30 @@ void broadcast_socket::updateStatus(AC_state ownState)
     
     stagedMsg.updateOwnStatus(ownState);
     msgUpdated = true;
-}  
+}
+
+
+
+/*
+ *  getUpdatedTargetsStatus is called from an external thread.
+ *
+ *  It fills in the vectors referenced in the arguments with
+ *  the data from the current list.
+ *
+ *  The return value represents the number of targets in the list
+ *
+ *  Heavy lifting is done by the version with more arguments
+ */
+int broadcast_socket::getUpdatedTargetsStatus(
+            std::vector<AC_state>& targetsStatusVector,
+            std::vector<TCAS_state>& targetsTCASVector)
+{
+    std::vector<unsigned int> temp1;
+    std::vector<bool> temp2;
+    return getUpdatedTargetsStatus( targetsStatusVector,
+                                    targetsTCASVector,
+                                    temp1, temp2); 
+}
 
 
 
@@ -361,15 +407,21 @@ void broadcast_socket::updateStatus(AC_state ownState)
  */
 int broadcast_socket::getUpdatedTargetsStatus(
             std::vector<AC_state>& targetsStatusVector,
-            std::vector<TCAS_state>& targetsTCASVector)
+            std::vector<TCAS_state>& targetsTCASVector,
+            std::vector<unsigned int>& targetsTimeoutVector,
+            std::vector<bool>& targetsCRC32StatusVector)
 {
     //Preallocate for time efficiency
     targetsStatusVector.reserve(MAX_TARGETS);
     targetsTCASVector.reserve(MAX_TARGETS);
+    targetsTimeoutVector.reserve(MAX_TARGETS);
+    targetsCRC32StatusVector.reserve(MAX_TARGETS);
 
     //Ensure the vectors are empty
     targetsStatusVector.clear();
     targetsTCASVector.clear();
+    targetsTimeoutVector.clear();
+    targetsCRC32StatusVector.clear();
     
     //Lock the targets list
     std::lock_guard<std::mutex> lock(targetsMutex);
@@ -384,6 +436,8 @@ int broadcast_socket::getUpdatedTargetsStatus(
             targetsTracked++;
             targetsStatusVector.push_back(targetsList[i]);
             targetsTCASVector.push_back(targetsTCAS[i]);
+            targetsTimeoutVector.push_back(timeout[i]);
+            targetsCRC32StatusVector.push_back(CRC32status[i]);
         }
     }
 
