@@ -103,11 +103,11 @@ void Radar_draw_plane(double P_xyz[3], char ID_str[16]){
     g2_set_font_size (virtual_dev, 10);
     g2_string(virtual_dev, x+r, y+r, ID_str);
     
-    char pos_STR[32];
+    /*char pos_STR[32];
     double P_llh[3];
     xyz_to_llh(P_xyz, P_llh);
     sprintf(pos_STR, "%7.4fDeg %7.4fDeg %6.1fm", P_llh[0]*180.0/pi, P_llh[1]*180.0/pi, P_llh[2]);
-    g2_string(virtual_dev, x+r, y-r, pos_STR);
+    g2_string(virtual_dev, x+r, y-r, pos_STR);*/
 }
 
 int get_colour(char *TCAS_status){
@@ -152,9 +152,11 @@ void Radar_update(AC_state ownState, TCAS_state own_TCAS_State, std::vector<AC_s
     char pos_STR[32];
     double P_llh[3];
     xyz_to_llh(Centre_xyz, P_llh);
-    sprintf(pos_STR, "%7.4fDeg %7.4fDeg %6.1fm", P_llh[0]*180.0/pi, P_llh[1]*180.0/pi, P_llh[2]);
-    cout << pos_STR;
-    g2_string(virtual_dev, W-300, 20, pos_STR);
+    sprintf(pos_STR, "ALT  %6.1f m", P_llh[2]);
+    g2_string(virtual_dev, W-200, 20, pos_STR);
+    sprintf(pos_STR, "VERT %6.1f m/s", Centre_V_enu[2]);
+    g2_string(virtual_dev, W-200, 40, pos_STR);
+    
     
     double heading = atan2(Centre_V_enu[0], Centre_V_enu[1])*180/pi;
     if(heading<0)
