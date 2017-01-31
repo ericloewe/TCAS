@@ -99,7 +99,7 @@ void convertData (AC_state state,
     TAS = sqrt(pow(V_enu[0], 2) + pow(V_enu[1], 2));
     Vup = V_enu[2];
 
-    HDG = atan2(V_enu[1], V_enu[0]) * 180 / pi;
+    HDG = atan2(V_enu[0], V_enu[1]) * 180 / pi;
     if(HDG < 0)
         HDG += 360;
 }

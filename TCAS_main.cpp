@@ -141,16 +141,26 @@ int main(int argn, char *argv[])
         //DEBUG
         printStatusDisp(ownID, ownLat, ownLon, ownAlt, ownHDG, ownTAS, ownVup);
         std::cout << std::endl << std::endl << "Targets: " << std::endl;
+        printStatusHeaderLong();
+
         
-        std::vector<AC_state> targets = The_Simulator.get_targetStates();
+        std::vector<AC_state> targets; //= //The_Simulator.get_targetStates();
+        std::vector<TCAS_state> tgtTCAS; // = transSocket.
+        std::vector<unsigned int> tgtTimeouts; 
+        std::vector<bool> tgtCRC;
         
-        for(std::vector<AC_state>::iterator it = targets.begin(); it!=targets.end(); it++){
-            
-            convertData(*it, ownLat, ownLon, ownAlt, ownHDG, ownTAS, ownVup);
-            printStatusDisp(it->AC_ID, ownLat, ownLon, ownAlt, ownHDG, ownTAS, ownVup);
+        int numOfTargets = transSocket.getUpdatedTargetsStatus(targets, tgtTCAS, 
+                                                                tgtTimeouts, tgtCRC);
+
+        for (int j = 0; j < numOfTargets; j++)
+        {
+            std::string statusStr = tgtTCAS[j].status;
+
+            convertData(targets[j], ownLat, ownLon, ownAlt, ownHDG, ownTAS, ownVup);
+            printStatusDisp(targets[j].AC_ID, ownLat, ownLon, ownAlt, ownHDG, ownTAS, ownVup,
+                            statusStr, tgtCRC[j], tgtTimeouts[j]);
             std::cout << std::endl;
         }
-
 
         std::this_thread::sleep_until(nextRefresh);
 

@@ -181,6 +181,20 @@ void broadcast_socket::sendThreadFunction()
             std::cout << "sendThread: WARNING - Tick, but no update." << std::endl;
         }
 
+        for (int j = 0; j < MAX_TARGETS; j++)
+        {
+            if (targetsList[j].AC_ID != 0)
+            {
+                if (timeout[j] == 0)
+                {
+                    targetsList[j].AC_ID = 0;
+                }
+                else
+                {
+                    timeout[j]--;
+                }
+            }
+        }
         std::this_thread::sleep_until(nextSend);
     }
 }
@@ -318,6 +332,7 @@ bool broadcast_socket::processTarget(TCAS_msg tgtMsg,
         {
             targetsList[i] = newState;
             targetsTCAS[i] = newTCAS;
+            timeout[i]     = TCAS_TIMEOUT;
             return true;
         }
     }
