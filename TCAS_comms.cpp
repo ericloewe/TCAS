@@ -217,6 +217,11 @@ void broadcast_socket::recvThreadFunction()
                                    0, (sockaddr*)&recvAddr, &recvAddrSize);
         //Timing is critical, so we take note of the time right away
         recvTime = std::chrono::high_resolution_clock::now();
+        
+        if(receivedBytes == -1){
+            std::cout << "Sock returned -1" << std::endl;
+            exit(1);
+        }
 
         //Reject messages that do not have the appropriate size
         if (receivedBytes != TCAS_MSG_LEN)

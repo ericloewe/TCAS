@@ -23,6 +23,10 @@ TCAS_state TCAS_sim::get_own_TCAS_State()
     return own_TCAS_State;
 }
 
+std::vector<AC_state> TCAS_sim::get_targetStates()
+{
+    return targetStates;
+}
 
 
 void TCAS_sim::sim_thread_fn(){

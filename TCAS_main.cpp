@@ -118,7 +118,7 @@ int main(int argn, char *argv[])
     std::chrono::high_resolution_clock::duration oneSecond(std::chrono::duration<long long>(1));
     
     //int i = 0;
-
+    
     while(continueProgram)
     {
         nextRefresh += oneSecond;
@@ -140,10 +140,16 @@ int main(int argn, char *argv[])
 
         //DEBUG
         printStatusDisp(ownID, ownLat, ownLon, ownAlt, ownHDG, ownTAS, ownVup);
-        std::cout << std::endl;
+        std::cout << std::endl << std::endl << "Targets: " << std::endl;
         
-
+        std::vector<AC_state> targets = The_Simulator.get_targetStates();
         
+        for(std::vector<AC_state>::iterator it = targets.begin(); it!=targets.end(); it++){
+            
+            convertData(*it, ownLat, ownLon, ownAlt, ownHDG, ownTAS, ownVup);
+            printStatusDisp(it->AC_ID, ownLat, ownLon, ownAlt, ownHDG, ownTAS, ownVup);
+            std::cout << std::endl;
+        }
 
 
         std::this_thread::sleep_until(nextRefresh);

@@ -32,7 +32,7 @@ void printStatusDisp(long long ac_hex, double lat, double lon, double altitude, 
     cout.precision(0);
     cout << setw(5) << altitude << "        ";
     cout.precision(1);
-    cout << setw(4) << hdg << "       " << setw(4) << TAS << "       ";
+    cout << setw(5) << hdg << "       " << setw(4) << TAS << "       ";
     cout.precision(2);
     cout << setw(5) << Vup;
 }
@@ -100,4 +100,6 @@ void convertData (AC_state state,
     Vup = V_enu[2];
 
     HDG = atan2(V_enu[1], V_enu[0]) * 180 / pi;
+    if(HDG < 0)
+        HDG += 360;
 }

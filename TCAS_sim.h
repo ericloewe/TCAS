@@ -53,6 +53,7 @@ public:
 
     TCAS_sim(AC_sim new_State_sim, broadcast_socket* new_socket_ptr);
     TCAS_state get_own_TCAS_State();
+    std::vector<AC_state> get_targetStates();
     AC_sim getAC_sim();
     
 };
