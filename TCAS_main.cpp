@@ -17,16 +17,17 @@
 #include "TCAS_comms.h"
 #include "AC_sim.h"
 #include "Radar.h"
-void printState (AC_state state);   //Move or delete this
+#include "TCAS_CLI.h"
+//void printState (AC_state state);   //Move or delete this
 
-using std::cout; using std::endl;
+//using std::cout; using std::endl;
  
 int main(int argn, char *argv[])
 {
     std::cout << "TCAS simulator Group C" << std::endl;
     std::cout << "Initializing..." << std::endl;
     
-    char tcasInitHeaderStr[] = TCAS_INIT_FILE_HDR;
+    //char tcasInitHeaderStr[] = TCAS_INIT_FILE_HDR; //Debug
     
     uint64_t ownID = OWN_HEX;
 
@@ -85,13 +86,13 @@ int main(int argn, char *argv[])
             }
             else
             {
-                cout << "Wrong file header" << endl;
+                std::cout << "Wrong file header" << std::endl;
             }
 
         }
         else
         {
-            cout << "Invalide file name" << endl;
+            std::cout << "Invalide file name" << std::endl;
         }
     }
 
@@ -109,11 +110,48 @@ int main(int argn, char *argv[])
     ownAircraft.set_controls(spdInit, hInit, headInit);
     TCAS_sim The_Simulator(ownAircraft, &transSocket);
     
-
-    //This stuff should go in a separate thread
-    //managed by an object
     
-    while(1);
+    bool continueProgram = true;
+
+    //CLI timer
+    auto nextRefresh = std::chrono::high_resolution_clock::now();
+    std::chrono::high_resolution_clock::duration oneSecond(std::chrono::duration<long long>(1));
+    
+    //int i = 0;
+
+    while(continueProgram)
+    {
+        nextRefresh += oneSecond;
+        //auto nextRefreshTime = nextRefresh.time_since_epoch();
+
+        //Issue a VT100 screen clear command [ <ESC>[2J ]
+        fprintf(stdout, "%c%c%c%c", 0x1b, 0x5b, 0x32, 0x4a);
+        //Issue a VT100 return to home command [ <ESC>[H ]
+        fprintf(stdout, "%c%c%c", 0x1b, 0x5b, 0x48);
+
+        std::cout << "                        ---===TCAS V01 Overview===---" << std::endl;
+        std::cout << "Current status:" << std::endl;
+        printStatusHeader();
+        
+        double ownLat, ownLon, ownAlt, ownHDG, ownTAS, ownVup;
+        
+        convertData(The_Simulator.getAC_sim().getAC_state(),
+                    ownLat, ownLon, ownAlt, ownHDG, ownTAS, ownVup);
+
+        //DEBUG
+        printStatusDisp(ownID, ownLat, ownLon, ownAlt, ownHDG, ownTAS, ownVup);
+        std::cout << std::endl;
+        
+
+        
+
+
+        std::this_thread::sleep_until(nextRefresh);
+
+
+
+
+    }
     
     //TODO - Cleanup
 }

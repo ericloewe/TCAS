@@ -19,6 +19,8 @@
 #define TCAS_INIT_FILE_HDR "TCAS Simulation Init File Format V1"
 #define TCAS_INIT_FILE_HDR_LEN 35
 
+#define TCAS_TIMEOUT 5 //Seconds
+
 
 const uint64_t own_hex = OWN_HEX;
 

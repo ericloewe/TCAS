@@ -43,6 +43,9 @@ class broadcast_socket
     //Incoming data buffers
     AC_state    targetsList[MAX_TARGETS];
     TCAS_state  targetsTCAS[MAX_TARGETS];
+    unsigned int    timeout[MAX_TARGETS];
+    bool        CRC32status[MAX_TARGETS];
+
     TCAS_msg tempRemoteMsg; //Holds recv'd data
     std::chrono::high_resolution_clock::time_point recvTime;
 
@@ -75,6 +78,11 @@ class broadcast_socket
     //Get a vector of all other A/C statuses
     int getUpdatedTargetsStatus(std::vector<AC_state>& targetsStatus,
                                 std::vector<TCAS_state>& targetsTCAS);
+    //Same as above, but with more data
+    int getUpdatedTargetsStatus(std::vector<AC_state>& targetsStatusVector,
+                                std::vector<TCAS_state>& targetsTCASVector,
+                                std::vector<unsigned int>& targetsTimeoutVector,
+                                std::vector<bool>& targetsCRC32StatusVector);
     
 
 };

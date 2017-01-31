@@ -29,6 +29,16 @@
         "*h*hctime": "cpp",
         "*hsystem_error": "cpp",
         "system_error": "cpp",
-        "*h*h*hpp*hpp*hpp*hpp*hpp*hpp*hpp*hpp*hppslist": "cpp"
+        "*h*h*hpp*hpp*hpp*hpp*hpp*hpp*hpp*hpp*hppslist": "cpp",
+        "*hpp*hpp*hpp*hpp*hpp*hpp*hpp*hpp*hppsystem_error": "cpp",
+        "slist": "cpp",
+        "string": "cpp",
+        "cmath": "cpp",
+        "cstddef": "cpp",
+        "*h*h*h*h*h*h*hpp*hpp*hpp*hpp*hpp*hpp*hppcstring": "cpp",
+        "*hpp*hpp*hpp*hpp*hpp*hpp*hppinitializer_list": "cpp",
+        "*hpp*h*hppcstdio": "cpp",
+        "*hppcsignal": "cpp",
+        "*hpp*h*hpp*hpp*hpp*hpp*hpp*hpp*hpp*hppclocale": "cpp"
     }
 }

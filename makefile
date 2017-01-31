@@ -7,8 +7,8 @@ LIBFLAGS = -lg2
 default: tcas
 build-default: tcas
 
-tcas : tcas.o TCAS_comms.o TCAS_defs.o Navigation.o TCAS_sim.o AC_sim.o Radar.o
-	$(CC) $(LINKFLAGS) tcas.o TCAS_comms.o TCAS_defs.o Navigation.o TCAS_sim.o AC_sim.o Radar.o $(LIBFLAGS) -o tcas
+tcas : tcas.o TCAS_comms.o TCAS_defs.o Navigation.o TCAS_sim.o AC_sim.o Radar.o TCAS_CLI.o
+	$(CC) $(LINKFLAGS) tcas.o TCAS_comms.o TCAS_defs.o Navigation.o TCAS_sim.o AC_sim.o Radar.o TCAS_CLI.o $(LIBFLAGS) -o tcas
     
 tcas.o : TCAS_main.cpp TCAS_defs.o AC_sim.h Radar.h TCAS_comms.h TCAS_defs.h
 	$(CC) $(STDFLAG) $(CFLAGS) TCAS_main.cpp -o tcas.o
@@ -30,6 +30,9 @@ AC_sim.o : AC_sim.cpp AC_sim.h TCAS_defs.o TCAS_defs.h
     
 Radar.o : Radar.cpp Radar.h TCAS_defs.o TCAS_defs.h
 	$(CC) $(STDFLAG) $(CFLAGS) Radar.cpp
+
+TCAS_CLI.o : TCAS_CLI.h TCAS_CLI.cpp
+	$(CC) $(STDFLAG) $(CFLAGS) TCAS_CLI.cpp
     
 .PHONY : clean
 clean : 

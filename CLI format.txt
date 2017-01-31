@@ -1,0 +1,31 @@
+                        ---===TCAS V01 Overview===---
+Current status:
+    Hex        Lat         Lon         Alt         HDG         TAS         Vup
+    a1b2c3d4   +65.7589    +123.1267   12789       127.6       271.3       +10.23
+
+    
+Current TCAS Status:
+    ADVISORY
+    Target in conflict: #0x4598e23a
+    Resolution status: #None
+    Resolution value: #8.0000
+    
+    Target Parameters:
+    TCAS Version: #01
+    ADVISORY
+    Target in conflict: #0x4598e23a
+    Resolution status: #None
+    Resolution value: #-8.0000
+    
+    Hex        Lat         Lon         Alt         HDG         TAS         Vup
+    4598e23a   +65.7589    +123.1267   12789       127.6       271.3       +10.23
+    
+    
+Aircraft currently tracked:
+    Hex        Lat         Lon         Alt         HDG         TAS         Vup      Status      CRC32       Timeout
+    4598e23a   +65.7589    +123.1267   12789       127.6       271.3       +10.23   ÃDVISORY    OK          5
+    4598e23a   +65.7589    +123.1267   12789       127.6       271.3       +10.23   CLEAR       FAIL!       3
+    4598e23a   +65.7589    +123.1267   12789       127.6       271.3       +10.23   RESOLUTION  OK          5
+    4598e23a   +65.7589    +123.1267   12789       127.6       271.3       +10.23   RETURNING   OK          5    
+    
+    
