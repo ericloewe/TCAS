@@ -6,6 +6,10 @@
 #include <iostream>
 #include <string.h>
 #include <iomanip>
+#include <math.h>
+#include <string.h>
+#include "TCAS_defs.h"
+#include "Navigation.h"
 
 using namespace std;
 
@@ -71,4 +75,29 @@ void printStatusDisp(long long ac_hex,
     }
 
     cout << setw(1) << timeout;
+}
+
+
+
+void convertData (AC_state state,
+                 double& lat, double& lon, double& altitude,
+                 double& HDG, double& TAS, double& Vup)
+{    
+    double P_xyz[3] = {state.x_pos, state.y_pos, state.z_pos};
+    double P_llh[3];
+    
+    xyz_to_llh(P_xyz, P_llh);
+    
+    lat = P_llh[0] *180 / pi;
+    lon = P_llh[1] * 180 / pi;
+    altitude = P_llh[2];
+    
+    double V_xyz[3] = {state.x_spd, state.y_spd, state.z_spd};;
+    double V_enu[3];
+    xyz_to_enu(V_xyz, P_llh[0], P_llh[1], V_enu);
+    
+    TAS = sqrt(pow(V_enu[0], 2) + pow(V_enu[1], 2));
+    Vup = V_enu[2];
+
+    HDG = atan2(V_enu[1], V_enu[0]) * 180 / pi;
 }

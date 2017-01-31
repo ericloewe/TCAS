@@ -293,3 +293,8 @@ void printState (AC_state state)
     cout << "Velocity: " << state.x_spd << "; " << state.y_spd << "; " << state.z_spd << endl;*/
 }
 
+AC_sim TCAS_sim::getAC_sim()
+{
+    return own_State_sim;
+}
+

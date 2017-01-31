@@ -52,6 +52,7 @@ public:
 
     TCAS_sim(AC_sim new_State_sim, broadcast_socket* new_socket_ptr);
     TCAS_state get_own_TCAS_State();
+    AC_sim getAC_sim();
     
 };
 

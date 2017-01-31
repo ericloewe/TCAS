@@ -150,3 +150,8 @@ void AC_sim::set_mode(int new_mode){
     mode = new_mode;
 }
 
+AC_state AC_sim::getAC_state()
+{
+    return state;
+}
+

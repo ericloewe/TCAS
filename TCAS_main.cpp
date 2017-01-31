@@ -18,9 +18,9 @@
 #include "AC_sim.h"
 #include "Radar.h"
 #include "TCAS_CLI.h"
-void printState (AC_state state);   //Move or delete this
+//void printState (AC_state state);   //Move or delete this
 
-using std::cout; using std::endl;
+//using std::cout; using std::endl;
  
 int main(int argn, char *argv[])
 {
@@ -86,13 +86,13 @@ int main(int argn, char *argv[])
             }
             else
             {
-                cout << "Wrong file header" << endl;
+                std::cout << "Wrong file header" << std::endl;
             }
 
         }
         else
         {
-            cout << "Invalide file name" << endl;
+            std::cout << "Invalide file name" << std::endl;
         }
     }
 
@@ -133,10 +133,13 @@ int main(int argn, char *argv[])
         std::cout << "Current status:" << std::endl;
         printStatusHeader();
         
-
+        double ownLat, ownLon, ownAlt, ownHDG, ownTAS, ownVup;
         
+        convertData(The_Simulator.getAC_sim().getAC_state(),
+                    ownLat, ownLon, ownAlt, ownHDG, ownTAS, ownVup);
+
         //DEBUG
-        printStatusDisp(ownID, 38.23, -9, 3500, 124, 200, 0.001, "CLEAR", true, 5);
+        printStatusDisp(ownID, ownLat, ownLon, ownAlt, ownHDG, ownTAS, ownVup);
         std::cout << std::endl;
         
 

@@ -44,13 +44,17 @@ public:
     void advanceToNow();
     
     bool at_h_ref;
+
+    AC_state getAC_state();
     
-    private:
+private:
     void step(milliseconds stepDuration);
     void runge_kutta_4 (double delta_t, double t_step);
     void f(const AC_state now_state, double f_value[6]);
     void euler_step(AC_state &now_state, double f_value[6], double time_step);
     
+    
+
     double V;
     double h_ref;
     double azimuth;

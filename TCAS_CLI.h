@@ -9,3 +9,7 @@ void printStatusDisp(long long hex,
                     std::string status, bool CRCpass, int timeout);
 void printStatusHeader();
 void printStatusHeaderLong();
+
+void convertData(AC_state state,
+                 double& lat, double& lon, double& altitude,
+                 double& HDG, double& TAS, double& Vup);
