@@ -1,0 +1,24 @@
+TCAS Simulation Init File Format V1
+10505			//Remote destination port
+10505			//Local incoming port
+216412359			//Own aircraft ID
+38.0		//Start latitude
+-9.0		//Start Longitude    
+8000			//Start altitude
+270		//Start heading         
+270			//Start speed
+
+//Lines after 9 are ignored
+//Do not change the header
+//Numeric values are read and the remainder of the line discarded
+//The // comment marks are cosmetic
+//
+//Local and remote port must be the same for standard operation
+//For testing, use crossed pair of ports A and B. Client x uses A/B,
+//client y uses B/A.
+//
+//Latitude and longitude in degrees
+//Altitude in meters
+//Heading in degrees
+//Speed in meters per second
+//Aircraft ID is in decimal format 
