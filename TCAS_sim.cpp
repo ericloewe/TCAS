@@ -33,8 +33,12 @@ void TCAS_sim::sim_thread_fn(){
     
     int counter = 0;
     
-    while(1){
-        usleep(900e3);
+    std::chrono::high_resolution_clock::time_point nextTick;
+    nextTick = std::chrono::high_resolution_clock::now();
+    std::chrono::high_resolution_clock::duration oneSecond(std::chrono::duration<long long>(1));
+
+    while(continueLoop){
+        nextTick += oneSecond;
         UpdateTargetStates();
         Actual_TCAS();
         UpdateOwnState();
@@ -46,6 +50,8 @@ void TCAS_sim::sim_thread_fn(){
             std::cout << "Targets list size: " << targetStates.size() << std::endl;
         }*/
         counter++;
+
+        std::this_thread::sleep_until(nextTick);
     }
     
 }

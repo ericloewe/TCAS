@@ -176,7 +176,7 @@ void Radar_update(AC_state ownState, TCAS_state own_TCAS_State, std::vector<AC_s
         
         g2_pen(virtual_dev, get_colour(target_TCAS_States[i].status));
         
-        sprintf(ID_str, "%lu", targetStates[i].AC_ID);
+        sprintf(ID_str, "%lX", targetStates[i].AC_ID);
         Radar_draw_plane(xyz, ID_str);
         //g2_string(virtual_dev, 0, H-80, target_TCAS_States[i].status);
         

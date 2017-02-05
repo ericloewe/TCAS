@@ -44,6 +44,8 @@ private:
     const double min_return_distance = 1000; //m
     const double Resolution_Time = 30; //s
     const double Advisory_Time = 40; //s
+
+    bool continueLoop = true;
     
     
     bool analyse_collision_danger(const int which_target, double &time_to_approach); //returns weather this aircraft will be or is within min_safe_distance of our aircraft
