@@ -13,7 +13,7 @@ There are four threads:
     3)  Construct the radar display object
     4)  Construct a broadcast_socket object
     5)  Construct whatever object contains the simulations
-    6)  Handle user input (optional)
+    6)  Handle user input (optional, not implemented, CTRL+C to exit)
     7)  join() all the threads (Must be handled by the objects' destructors!)
     
 1)  The send() thread:
@@ -21,7 +21,7 @@ There are four threads:
     2)  Set the timer for 1 second in the future
     3)  Check for updates to our state (complain if they're not there and go to 2))
     4)  send() stuff
-    5)  Increment the target database's timeout counters (? Very optional)
+    5)  Increment the target database's timeout counters
     6)  Wait for the timer (std::this_thread::sleep_until(nextSend))
     7)  Go to 2)
     
@@ -50,4 +50,6 @@ Additional notes:
 The function executed by thread 3) must receive references to at least the following:
     -   the previously-created broadcast_socket object
     -   the previously-created radar display object
+
+CRCs are verified, but messages are not rejected. CRC status is presented to the user.
     
