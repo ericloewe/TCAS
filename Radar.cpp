@@ -144,7 +144,7 @@ void Radar_update(AC_state ownState, TCAS_state own_TCAS_State, std::vector<AC_s
     
     g2_pen(virtual_dev, stuff_colour);
     
-    sprintf(ID_str, "%lu", ownState.AC_ID);
+    sprintf(ID_str, "%lX", ownState.AC_ID);
     g2_set_font_size (virtual_dev, 20);
     g2_string(virtual_dev, 0, H-20, ID_str);
     

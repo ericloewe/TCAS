@@ -54,7 +54,11 @@ void printStatusDisp(long long ac_hex,
     }
     else if (status == "RESOLUTION")
     {
-        cout << "RESOLUTION  ";
+        cout << "RESOLVING  ";
+    }
+     else if (status == "RESOLVING")
+    {
+        cout << "RESOLVING  ";
     }
     else if (status == "RETURNING")
     {
